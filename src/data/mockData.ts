@@ -3,19 +3,19 @@ import { Child, FavoriteItem, LabelItem } from '../types';
 export const DEFAULT_CHILDREN: Child[] = [
   {
     id: 'child-1',
-    firstName: 'Alex',
-    lastName: 'Taylor',
-    fullName: 'Alex Taylor',
+    firstName: 'Child 1',
+    lastName: 'LastName',
+    fullName: 'Child 1 LastName',
     color: '#0284C7', // Baby Blue
-    avatarLetter: 'A',
+    avatarLetter: '1',
   },
   {
     id: 'child-2',
-    firstName: 'Sam',
-    lastName: 'Taylor',
-    fullName: 'Sam Taylor',
+    firstName: 'Child 2',
+    lastName: 'LastName',
+    fullName: 'Child 2 LastName',
     color: '#F43F5E', // Blush Pink
-    avatarLetter: 'S',
+    avatarLetter: '2',
   },
 ];
 

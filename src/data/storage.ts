@@ -29,14 +29,32 @@ export const storage = {
       if (data) {
         const parsed = JSON.parse(data);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed.map((c: any) => ({
-            id: c.id,
-            firstName: c.firstName,
-            lastName: c.lastName || '',
-            fullName: c.fullName || c.firstName,
-            color: c.color || '#0284C7',
-            avatarLetter: (c.firstName || 'A').charAt(0).toUpperCase(),
-          }));
+          return parsed.map((c: any, idx: number) => {
+            // Migrate old sample placeholder names ("Alex Taylor" / "Sam Taylor") to generic "Child 1 LastName" / "Child 2 LastName"
+            const isLegacySample =
+              (c.firstName === 'Alex' && c.lastName === 'Taylor') ||
+              (c.firstName === 'Sam' && c.lastName === 'Taylor');
+            const firstName = isLegacySample ? `Child ${idx + 1}` : c.firstName;
+            const lastName = isLegacySample ? 'LastName' : c.lastName || '';
+            const fullName = isLegacySample
+              ? `${firstName} ${lastName}`
+              : c.fullName || firstName;
+            const numMatch = String(firstName || '').trim().match(/^Child\s+(\d+)$/i);
+            const avatarLetter = numMatch
+              ? numMatch[1]
+              : c.avatarLetter && !isLegacySample
+              ? c.avatarLetter
+              : (firstName || 'C').charAt(0).toUpperCase();
+
+            return {
+              id: c.id,
+              firstName,
+              lastName,
+              fullName,
+              color: c.color || '#0284C7',
+              avatarLetter,
+            };
+          });
         }
       }
     } catch (e) {

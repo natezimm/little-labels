@@ -90,6 +90,13 @@ export const Screen5Settings: React.FC<Screen5SettingsProps> = ({
     setEditColor(child.color);
   };
 
+  const getAvatarSymbol = (name: string) => {
+    const trimmed = name.trim();
+    const numMatch = trimmed.match(/^Child\s+(\d+)$/i);
+    if (numMatch) return numMatch[1];
+    return trimmed.charAt(0).toUpperCase() || 'C';
+  };
+
   const handleSaveChild = (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingChild || !editFirstName.trim()) return;
@@ -103,7 +110,7 @@ export const Screen5Settings: React.FC<Screen5SettingsProps> = ({
             firstName: first,
             lastName: last,
             fullName: last ? `${first} ${last}` : first,
-            avatarLetter: first.charAt(0).toUpperCase() || 'A',
+            avatarLetter: getAvatarSymbol(first),
             color: editColor,
           }
         : ch
@@ -114,13 +121,15 @@ export const Screen5Settings: React.FC<Screen5SettingsProps> = ({
   };
 
   const handleAddNewChild = () => {
+    const nextNum = childrenList.length + 1;
+    const defaultLast = childrenList[0]?.lastName || 'LastName';
     const newChild: Child = {
       id: `child-${Date.now()}`,
-      firstName: 'Child',
-      lastName: childrenList[0]?.lastName || '',
-      fullName: childrenList[0]?.lastName ? `Child ${childrenList[0].lastName}` : 'Child',
+      firstName: `Child ${nextNum}`,
+      lastName: defaultLast,
+      fullName: defaultLast ? `Child ${nextNum} ${defaultLast}` : `Child ${nextNum}`,
       color: ACCENT_COLORS[childrenList.length % ACCENT_COLORS.length].hex,
-      avatarLetter: 'C',
+      avatarLetter: String(nextNum),
     };
     const updated = [...childrenList, newChild];
     onUpdateChildren(updated);
