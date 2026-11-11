@@ -18,6 +18,7 @@ export interface Child {
 
 export interface FavoriteItem {
   id: string;
+  childId: string;
   title: string;
   defaultOunces?: number | null;
 }

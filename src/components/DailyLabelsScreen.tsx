@@ -11,6 +11,7 @@ import {
   ChevronLeft,
   ChevronRight,
   SlidersHorizontal,
+  Droplets,
 } from 'lucide-react';
 import {
   addDaysISO,
@@ -66,17 +67,30 @@ export const DailyLabelsScreen: React.FC<DailyLabelsScreenProps> = ({
   const isToday = selectedDateISO === todayISO;
   const isTomorrow = selectedDateISO === tomorrowISO;
 
-  // Helper to get soft pastel styles based on child's accent color
+  // Soft pastel colors based on child's accent
+  const isPink =
+    activeChild.color.toLowerCase() === '#f43f5e' ||
+    activeChild.color.toLowerCase() === '#ec4899';
+  const isBlue =
+    activeChild.color.toLowerCase() === '#0284c7' ||
+    activeChild.color.toLowerCase() === '#3b82f6';
+
+  const childAccentBg = isBlue ? 'bg-sky-50' : isPink ? 'bg-rose-50' : 'bg-neutral-100';
+  const childAccentText = isBlue ? 'text-sky-900' : isPink ? 'text-rose-950' : 'text-neutral-800';
+  const childAccentBorder = isBlue ? 'border-sky-200/80' : isPink ? 'border-rose-200/80' : 'border-neutral-200';
+
   const getChildTabStyle = (ch: Child, isActive: boolean) => {
-    const isPink = ch.color.toLowerCase() === '#f43f5e' || ch.color.toLowerCase() === '#ec4899';
-    const isBlue = ch.color.toLowerCase() === '#0284c7' || ch.color.toLowerCase() === '#3b82f6';
+    const chIsPink =
+      ch.color.toLowerCase() === '#f43f5e' || ch.color.toLowerCase() === '#ec4899';
+    const chIsBlue =
+      ch.color.toLowerCase() === '#0284c7' || ch.color.toLowerCase() === '#3b82f6';
 
     if (isActive) {
-      if (isBlue) {
-        return 'bg-sky-50/90 border-sky-200/90 text-sky-950 shadow-2xs ring-1 ring-sky-200/60';
+      if (chIsBlue) {
+        return 'bg-sky-50/90 border-sky-300/80 text-sky-950 shadow-2xs ring-1 ring-sky-200/60';
       }
-      if (isPink) {
-        return 'bg-rose-50/90 border-rose-200/90 text-rose-950 shadow-2xs ring-1 ring-rose-200/60';
+      if (chIsPink) {
+        return 'bg-rose-50/90 border-rose-300/80 text-rose-950 shadow-2xs ring-1 ring-rose-200/60';
       }
       return 'bg-white border-neutral-300 text-neutral-900 shadow-2xs';
     }
@@ -89,9 +103,16 @@ export const DailyLabelsScreen: React.FC<DailyLabelsScreenProps> = ({
       {/* Clean iOS Header */}
       <header className="bg-white/90 backdrop-blur-md px-5 pt-4 pb-3 border-b border-neutral-200/60 sticky top-0 z-20">
         <div className="flex justify-between items-center mb-3.5">
-          <h1 className="text-[22px] font-bold tracking-tight text-neutral-900">
-            Little Labels
-          </h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-[22px] font-bold tracking-tight text-neutral-900">
+              Little Labels
+            </h1>
+            <span
+              className="w-2 h-2 rounded-full transition-colors duration-300"
+              style={{ backgroundColor: activeChild.color }}
+              title={`Active: ${activeChild.firstName}`}
+            />
+          </div>
 
           <div className="flex items-center gap-2">
             <button
@@ -128,7 +149,7 @@ export const DailyLabelsScreen: React.FC<DailyLabelsScreenProps> = ({
                 )}`}
               >
                 <div
-                  className="w-5 h-5 rounded-full flex items-center justify-center text-[11px] font-bold text-white shrink-0"
+                  className="w-5 h-5 rounded-full flex items-center justify-center text-[11px] font-bold text-white shrink-0 shadow-2xs"
                   style={{ backgroundColor: ch.color }}
                 >
                   {ch.avatarLetter}
@@ -137,7 +158,7 @@ export const DailyLabelsScreen: React.FC<DailyLabelsScreenProps> = ({
                 <span
                   className={`ml-auto text-[11px] font-medium px-1.5 py-0.2 rounded-full ${
                     isActive
-                      ? 'bg-white/80 text-neutral-700'
+                      ? 'bg-white/90 text-neutral-800'
                       : 'bg-neutral-200/70 text-neutral-500'
                   }`}
                 >
@@ -228,12 +249,19 @@ export const DailyLabelsScreen: React.FC<DailyLabelsScreenProps> = ({
 
       {/* Main Content */}
       <div className="flex-1 px-5 py-4 space-y-5">
-        {/* Quick Add Favorites */}
+        {/* Child's Own Quick Add Favorites */}
         <section>
           <div className="flex justify-between items-center mb-2">
-            <span className="text-xs font-medium text-neutral-400">
-              Quick Add
-            </span>
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs font-medium text-neutral-400">
+                Quick Add
+              </span>
+              <span
+                className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${childAccentBg} ${childAccentText} ${childAccentBorder}`}
+              >
+                {activeChild.firstName}’s items
+              </span>
+            </div>
             <button
               onClick={onGoToFavorites}
               className="text-xs text-neutral-500 hover:text-neutral-900 flex items-center gap-1 font-medium transition-colors"
@@ -248,9 +276,12 @@ export const DailyLabelsScreen: React.FC<DailyLabelsScreenProps> = ({
               <button
                 key={fav.id}
                 onClick={() => onAddFromFavorite(fav)}
-                className="px-3 py-1.5 rounded-xl bg-white border border-neutral-200/80 hover:border-neutral-300 text-[13px] font-medium text-neutral-800 shadow-2xs flex items-center gap-1.5 active:scale-95 transition-all"
+                className="px-3 py-1.5 rounded-xl bg-white border border-neutral-200/80 hover:border-neutral-300 text-[13px] font-medium text-neutral-800 shadow-2xs flex items-center gap-1.5 active:scale-95 transition-all group"
               >
-                <Plus className="w-3.5 h-3.5 text-neutral-400" />
+                <Plus
+                  className="w-3.5 h-3.5 transition-colors"
+                  style={{ color: activeChild.color }}
+                />
                 <span>{fav.title}</span>
                 {fav.defaultOunces ? (
                   <span className="text-xs text-neutral-400 font-normal">
@@ -259,15 +290,31 @@ export const DailyLabelsScreen: React.FC<DailyLabelsScreenProps> = ({
                 ) : null}
               </button>
             ))}
+
+            {favorites.length === 0 && (
+              <button
+                onClick={onGoToFavorites}
+                className="text-xs text-neutral-400 py-2 hover:text-neutral-700 flex items-center gap-1"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Add saved items for {activeChild.firstName}...</span>
+              </button>
+            )}
           </div>
         </section>
 
         {/* Active Child's Label List */}
         <section>
           <div className="flex justify-between items-baseline mb-2">
-            <h2 className="text-xs font-medium text-neutral-400">
-              {activeChild.firstName}’s Labels · {getFriendlyDateLabel(selectedDateISO)}
-            </h2>
+            <div className="flex items-center gap-1.5">
+              <h2 className="text-xs font-medium text-neutral-400">
+                {activeChild.firstName}’s Labels
+              </h2>
+              <span className="text-xs text-neutral-300">·</span>
+              <span className="text-xs text-neutral-400">
+                {getFriendlyDateLabel(selectedDateISO)}
+              </span>
+            </div>
             {labels.length > 0 && (
               <span className="text-[11px] text-neutral-400">
                 Tap item to edit
@@ -309,9 +356,15 @@ export const DailyLabelsScreen: React.FC<DailyLabelsScreenProps> = ({
                         >
                           <Minus className="w-3 h-3" />
                         </button>
-                        <span className="text-xs font-semibold px-2 text-neutral-800 min-w-[44px] text-center tabular-nums">
-                          {item.ounces} oz
-                        </span>
+                        <div className="flex items-center gap-1 px-1.5">
+                          <Droplets
+                            className="w-2.5 h-2.5 opacity-80"
+                            style={{ color: activeChild.color }}
+                          />
+                          <span className="text-xs font-semibold text-neutral-800 min-w-[32px] text-center tabular-nums">
+                            {item.ounces} oz
+                          </span>
+                        </div>
                         <button
                           type="button"
                           onClick={() =>
@@ -365,13 +418,19 @@ export const DailyLabelsScreen: React.FC<DailyLabelsScreenProps> = ({
 
       {/* Bottom Sticky Action Bar */}
       <div className="bg-white/90 backdrop-blur-md px-5 py-3.5 border-t border-neutral-200/70 sticky bottom-0 z-20 flex items-center justify-between gap-3">
-        <div>
-          <span className="text-sm font-semibold text-neutral-900 block">
-            {labels.length} {labels.length === 1 ? 'Label' : 'Labels'}
-          </span>
-          <span className="text-xs text-neutral-400">
-            {activeChild.fullName} · {formattedDate}
-          </span>
+        <div className="flex items-center gap-2">
+          <div
+            className="w-2 h-2 rounded-full"
+            style={{ backgroundColor: activeChild.color }}
+          />
+          <div>
+            <span className="text-sm font-semibold text-neutral-900 block leading-tight">
+              {labels.length} {labels.length === 1 ? 'Label' : 'Labels'}
+            </span>
+            <span className="text-xs text-neutral-400">
+              {activeChild.fullName} · {formattedDate}
+            </span>
+          </div>
         </div>
 
         <button

@@ -6,7 +6,10 @@ import { ArrowLeft, Printer, CheckCircle, AlertCircle } from 'lucide-react';
 interface Screen4PrintPreviewProps {
   labels: LabelItem[];
   onBack: () => void;
+  activeChildFirstName: string;
   activeChildFullName: string;
+  activeChildColor: string;
+  activeChildAvatar: string;
   formattedDate: string;
   printerModel: string;
 }
@@ -14,7 +17,10 @@ interface Screen4PrintPreviewProps {
 export const Screen4PrintPreview: React.FC<Screen4PrintPreviewProps> = ({
   labels,
   onBack,
+  activeChildFirstName,
   activeChildFullName,
+  activeChildColor,
+  activeChildAvatar,
   formattedDate,
   printerModel,
 }) => {
@@ -46,7 +52,7 @@ export const Screen4PrintPreview: React.FC<Screen4PrintPreviewProps> = ({
               Print Preview
             </h1>
             <p className="text-xs text-neutral-400">
-              {activeChildFullName} · {formattedDate}
+              {activeChildFirstName} · {formattedDate}
             </p>
           </div>
         </div>
@@ -68,9 +74,21 @@ export const Screen4PrintPreview: React.FC<Screen4PrintPreviewProps> = ({
 
       {/* Physical Labels Roll Preview */}
       <div className="flex-1 p-5 flex flex-col items-center gap-4">
-        <div className="w-full max-w-[280px] flex justify-between items-center text-xs text-neutral-400">
-          <span>2.1" × 1.1" Labels</span>
-          <span>
+        {/* Subtle Child Confirmation Pill */}
+        <div className="w-full max-w-[280px] flex items-center justify-between px-1">
+          <div className="flex items-center gap-1.5">
+            <div
+              className="w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold text-white shadow-2xs"
+              style={{ backgroundColor: activeChildColor }}
+            >
+              {activeChildAvatar}
+            </div>
+            <span className="text-xs font-semibold text-neutral-800">
+              {activeChildFullName}
+            </span>
+          </div>
+
+          <span className="text-xs text-neutral-400 font-medium">
             {labels.length} {labels.length === 1 ? 'sticker' : 'stickers'}
           </span>
         </div>
@@ -88,7 +106,7 @@ export const Screen4PrintPreview: React.FC<Screen4PrintPreviewProps> = ({
           {labels.length === 0 && (
             <div className="py-16 text-center text-neutral-400">
               <AlertCircle className="w-7 h-7 mx-auto mb-2 opacity-40" />
-              <p className="text-xs">No labels queued for {activeChildFullName}.</p>
+              <p className="text-xs">No labels queued for {activeChildFirstName}.</p>
             </div>
           )}
         </div>

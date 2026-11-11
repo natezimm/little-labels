@@ -3,14 +3,13 @@ import { DEFAULT_CHILDREN, DEFAULT_FAVORITES, DEFAULT_LABELS } from './mockData'
 
 const STORAGE_KEYS = {
   CHILDREN: 'little_labels_children_v2',
-  FAVORITES: 'little_labels_favorites_v2',
+  FAVORITES: 'little_labels_favorites_v3', // bumped for per-child favorites migration
   LABELS: 'little_labels_labels_v2',
   ACTIVE_CHILD: 'little_labels_active_child_v2',
   DATE_FORMAT: 'little_labels_date_format_v2',
   PRINTER_MODEL: 'little_labels_printer_model_v2',
 };
 
-// Also check v1 keys for smooth migration of any saved child names
 const LEGACY_CHILDREN_KEY = 'little_labels_children';
 
 export const storage = {
@@ -44,12 +43,21 @@ export const storage = {
     }
   },
 
-  getFavorites: (): FavoriteItem[] => {
+  getFavorites: (childrenList?: Child[]): FavoriteItem[] => {
     try {
       const data = localStorage.getItem(STORAGE_KEYS.FAVORITES);
       if (data) {
         const parsed = JSON.parse(data);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          // Ensure every item has a valid childId
+          const fallbackChildId = childrenList?.[0]?.id || 'child-1';
+          return parsed.map((f: any) => ({
+            id: f.id,
+            childId: f.childId || fallbackChildId,
+            title: f.title,
+            defaultOunces: typeof f.defaultOunces === 'number' ? f.defaultOunces : null,
+          }));
+        }
       }
     } catch (e) {
       console.warn('Failed to load favorites from localStorage', e);

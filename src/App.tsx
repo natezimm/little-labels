@@ -24,9 +24,9 @@ export const App: React.FC = () => {
   const [dateFormat, setDateFormat] = useState<DateFormat>(() => storage.getDateFormat());
   const [printerModel, setPrinterModel] = useState<string>(() => storage.getPrinterModel());
 
-  // Labels & Favorites
+  // Labels & Favorites (both scoped per child)
   const [labels, setLabels] = useState<LabelItem[]>(() => storage.getLabels());
-  const [favorites, setFavorites] = useState<FavoriteItem[]>(() => storage.getFavorites());
+  const [favorites, setFavorites] = useState<FavoriteItem[]>(() => storage.getFavorites(childrenList));
 
   // Modal State for Screen 2 (Add / Edit)
   const [isAddEditOpen, setIsAddEditOpen] = useState(false);
@@ -69,6 +69,12 @@ export const App: React.FC = () => {
   const activeChildLabels = useMemo(
     () => labels.filter((l) => l.childId === activeChild.id),
     [labels, activeChild.id]
+  );
+
+  // Active child's own quick-add favorites
+  const activeChildFavorites = useMemo(
+    () => favorites.filter((f) => f.childId === activeChild.id),
+    [favorites, activeChild.id]
   );
 
   // Count of labels per child for the child switcher badge
@@ -154,7 +160,10 @@ export const App: React.FC = () => {
     if (screen === 'favorites') {
       return (
         <Screen3Favorites
-          favorites={favorites}
+          favorites={activeChildFavorites}
+          activeChild={activeChild}
+          childrenList={childrenList}
+          onSelectChild={setActiveChild}
           onAddFavoriteToBatch={handleAddFromFavorite}
           onAddNewFavorite={(newFav) =>
             setFavorites((prev) => [...prev, { ...newFav, id: `f-${Date.now()}` }])
@@ -163,7 +172,6 @@ export const App: React.FC = () => {
             setFavorites((prev) => prev.filter((f) => f.id !== id))
           }
           onBack={() => setScreen('daily')}
-          activeChildName={activeChild.firstName}
         />
       );
     }
@@ -173,7 +181,10 @@ export const App: React.FC = () => {
         <Screen4PrintPreview
           labels={activeChildLabels}
           onBack={() => setScreen('daily')}
+          activeChildFirstName={activeChild.firstName}
           activeChildFullName={activeChild.fullName}
+          activeChildColor={activeChild.color}
+          activeChildAvatar={activeChild.avatarLetter}
           formattedDate={formattedDate}
           printerModel={printerModel}
         />
@@ -205,7 +216,7 @@ export const App: React.FC = () => {
         onChangeDateISO={setSelectedDateISO}
         labels={activeChildLabels}
         allLabelsCountByChild={allLabelsCountByChild}
-        favorites={favorites}
+        favorites={activeChildFavorites}
         onAddFromFavorite={handleAddFromFavorite}
         onDuplicateLabel={handleDuplicateLabel}
         onRemoveLabel={handleRemoveLabel}

@@ -1,23 +1,27 @@
 import React, { useState } from 'react';
-import { FavoriteItem } from '../types';
+import { Child, FavoriteItem } from '../types';
 import { Search, Plus, Check, ArrowLeft, Trash2, Minus } from 'lucide-react';
 
 interface Screen3FavoritesProps {
   favorites: FavoriteItem[];
+  activeChild: Child;
+  childrenList: Child[];
+  onSelectChild: (c: Child) => void;
   onAddFavoriteToBatch: (fav: FavoriteItem) => void;
   onAddNewFavorite: (fav: Omit<FavoriteItem, 'id'>) => void;
   onRemoveFavorite: (id: string) => void;
   onBack: () => void;
-  activeChildName: string;
 }
 
 export const Screen3Favorites: React.FC<Screen3FavoritesProps> = ({
   favorites,
+  activeChild,
+  childrenList,
+  onSelectChild,
   onAddFavoriteToBatch,
   onAddNewFavorite,
   onRemoveFavorite,
   onBack,
-  activeChildName,
 }) => {
   const [search, setSearch] = useState('');
   const [recentlyAddedId, setRecentlyAddedId] = useState<string | null>(null);
@@ -43,6 +47,7 @@ export const Screen3Favorites: React.FC<Screen3FavoritesProps> = ({
     if (!newTitle.trim()) return;
 
     onAddNewFavorite({
+      childId: activeChild.id,
       title: newTitle.trim(),
       defaultOunces: includeOunces ? newOunces : null,
     });
@@ -55,29 +60,58 @@ export const Screen3Favorites: React.FC<Screen3FavoritesProps> = ({
   return (
     <div className="w-full min-h-screen flex flex-col bg-[#F7F7F5] text-neutral-900 font-sans">
       {/* Header */}
-      <div className="bg-white/90 backdrop-blur-md px-5 py-3.5 border-b border-neutral-200/70 flex items-center justify-between sticky top-0 z-20">
-        <div className="flex items-center gap-2.5">
-          <button
-            onClick={onBack}
-            className="p-1.5 -ml-1.5 text-neutral-500 hover:text-neutral-900 rounded-lg hover:bg-neutral-100 transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-          <div>
-            <h1 className="text-base font-bold text-neutral-900 leading-tight">Saved Items</h1>
-            <p className="text-xs text-neutral-400">
-              Quick-add favorites for {activeChildName}
-            </p>
+      <div className="bg-white/90 backdrop-blur-md px-5 py-3.5 border-b border-neutral-200/70 sticky top-0 z-20">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2.5">
+            <button
+              onClick={onBack}
+              className="p-1.5 -ml-1.5 text-neutral-500 hover:text-neutral-900 rounded-lg hover:bg-neutral-100 transition-colors"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+            <div>
+              <h1 className="text-base font-bold text-neutral-900 leading-tight">Saved Items</h1>
+              <p className="text-xs text-neutral-400">
+                Quick-add favorites for {activeChild.firstName}
+              </p>
+            </div>
           </div>
+
+          <button
+            onClick={() => setShowAddForm(!showAddForm)}
+            className="px-3 py-1.5 bg-neutral-900 hover:bg-black text-white text-xs font-semibold rounded-full flex items-center gap-1 shadow-2xs transition-transform active:scale-95"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>New</span>
+          </button>
         </div>
 
-        <button
-          onClick={() => setShowAddForm(!showAddForm)}
-          className="px-3 py-1.5 bg-neutral-900 hover:bg-black text-white text-xs font-semibold rounded-full flex items-center gap-1 shadow-2xs transition-transform active:scale-95"
-        >
-          <Plus className="w-3.5 h-3.5" />
-          <span>New</span>
-        </button>
+        {/* Child Switcher Tabs inside Favorites */}
+        <div className="grid grid-cols-2 gap-2">
+          {childrenList.map((ch) => {
+            const isActive = ch.id === activeChild.id;
+
+            return (
+              <button
+                key={ch.id}
+                onClick={() => onSelectChild(ch)}
+                className={`py-1.5 px-3 rounded-xl flex items-center justify-center gap-2 border text-xs font-semibold transition-all ${
+                  isActive
+                    ? 'bg-white border-neutral-300 text-neutral-900 shadow-2xs'
+                    : 'bg-neutral-100/70 border-transparent text-neutral-400 hover:text-neutral-700'
+                }`}
+              >
+                <div
+                  className="w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold text-white shrink-0"
+                  style={{ backgroundColor: ch.color }}
+                >
+                  {ch.avatarLetter}
+                </div>
+                <span>{ch.firstName}</span>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* New Favorite Drawer */}
@@ -85,8 +119,12 @@ export const Screen3Favorites: React.FC<Screen3FavoritesProps> = ({
         <div className="p-4 bg-white border-b border-neutral-200/80 animate-in slide-in-from-top duration-150">
           <form onSubmit={handleCreateFavorite} className="space-y-3">
             <div className="flex justify-between items-center">
-              <span className="text-xs font-semibold text-neutral-700">
-                New Saved Item
+              <span className="text-xs font-semibold text-neutral-800 flex items-center gap-1.5">
+                <span
+                  className="w-2 h-2 rounded-full"
+                  style={{ backgroundColor: activeChild.color }}
+                />
+                New Item for {activeChild.firstName}
               </span>
               <button
                 type="button"
@@ -145,7 +183,7 @@ export const Screen3Favorites: React.FC<Screen3FavoritesProps> = ({
               type="submit"
               className="w-full py-2 bg-neutral-900 hover:bg-black text-white text-xs font-semibold rounded-xl"
             >
-              Save Item
+              Save for {activeChild.firstName}
             </button>
           </form>
         </div>
@@ -159,7 +197,7 @@ export const Screen3Favorites: React.FC<Screen3FavoritesProps> = ({
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Filter saved items..."
+            placeholder={`Filter ${activeChild.firstName}’s items...`}
             className="w-full pl-9 pr-3 py-2 text-xs rounded-xl bg-white border border-neutral-200/80 focus:border-neutral-400 focus:outline-hidden transition-all"
           />
         </div>
@@ -202,7 +240,10 @@ export const Screen3Favorites: React.FC<Screen3FavoritesProps> = ({
                       </>
                     ) : (
                       <>
-                        <Plus className="w-3.5 h-3.5" />
+                        <Plus
+                          className="w-3.5 h-3.5"
+                          style={{ color: activeChild.color }}
+                        />
                         <span>Add</span>
                       </>
                     )}
@@ -222,7 +263,7 @@ export const Screen3Favorites: React.FC<Screen3FavoritesProps> = ({
 
           {filteredFavorites.length === 0 && (
             <div className="text-center py-10 text-neutral-400 text-xs">
-              No saved items match your search.
+              No saved items for {activeChild.firstName} yet. Tap + New above.
             </div>
           )}
         </div>

@@ -20,7 +20,7 @@ export const DEFAULT_CHILDREN: Child[] = [
 ];
 
 export const DEFAULT_LABELS: LabelItem[] = [
-  // Child 1's own batch
+  // Child 1's own batch (toddler foods & bottles)
   {
     id: 'l1',
     childId: 'child-1',
@@ -63,7 +63,7 @@ export const DEFAULT_LABELS: LabelItem[] = [
     contents: 'Water',
     ounces: 6,
   },
-  // Child 2's own independent batch
+  // Child 2's own independent batch (infant bottles)
   {
     id: 'l8',
     childId: 'child-2',
@@ -91,48 +91,72 @@ export const DEFAULT_LABELS: LabelItem[] = [
 ];
 
 export const DEFAULT_FAVORITES: FavoriteItem[] = [
+  // Child 1's own quick-add favorites
   {
     id: 'f1',
+    childId: 'child-1',
     title: 'Whole milk',
     defaultOunces: 6,
   },
   {
     id: 'f2',
+    childId: 'child-1',
     title: 'Water',
     defaultOunces: 6,
   },
   {
     id: 'f3',
+    childId: 'child-1',
     title: 'Scrambled eggs',
     defaultOunces: null,
   },
   {
     id: 'f4',
+    childId: 'child-1',
     title: 'Pasta',
     defaultOunces: null,
   },
   {
     id: 'f5',
+    childId: 'child-1',
     title: 'Crunchies',
     defaultOunces: null,
   },
   {
     id: 'f6',
+    childId: 'child-1',
+    title: 'Sliced bananas',
+    defaultOunces: null,
+  },
+
+  // Child 2's own quick-add favorites
+  {
+    id: 'f7',
+    childId: 'child-2',
     title: 'Formula',
     defaultOunces: 5,
   },
   {
-    id: 'f7',
+    id: 'f8',
+    childId: 'child-2',
+    title: 'Formula',
+    defaultOunces: 4,
+  },
+  {
+    id: 'f9',
+    childId: 'child-2',
+    title: 'Water',
+    defaultOunces: 4,
+  },
+  {
+    id: 'f10',
+    childId: 'child-2',
     title: 'Oatmeal',
     defaultOunces: null,
   },
   {
-    id: 'f8',
-    title: 'Sliced bananas',
-    defaultOunces: null,
-  },
-  {
-    id: 'f9',
+    id: 'f11',
+    childId: 'child-2',
     title: 'Yogurt',
     defaultOunces: null,
   },
