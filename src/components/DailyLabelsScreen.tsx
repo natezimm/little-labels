@@ -179,22 +179,54 @@ export const DailyLabelsScreen: React.FC<DailyLabelsScreenProps> = ({
       {/* Clean iOS Header */}
       <header className="bg-white/90 backdrop-blur-md px-5 pt-4 pb-3 border-b border-neutral-200/60 sticky top-0 z-20">
         <div className="flex justify-between items-center mb-3.5">
-          {/* Title styled as a tactile die-cut physical label */}
-          <div className="inline-flex items-center bg-white border border-neutral-300/90 rounded-lg shadow-[0_1px_3px_rgba(0,0,0,0.06)] overflow-hidden -rotate-[1deg] hover:rotate-0 transition-transform duration-200 select-none">
-            {/* Left Child-Colored Accent Band */}
+          {/* Option 1: Peeling Corner Sticker Wordmark */}
+          <div
+            className="relative inline-flex items-center bg-white border border-neutral-200/90 rounded-xl shadow-[0_2px_6px_rgba(0,0,0,0.05),0_1px_2px_rgba(0,0,0,0.04)] pl-3.5 pr-8 py-2 -rotate-[0.5deg] hover:rotate-0 transition-transform duration-200 select-none group overflow-hidden"
+            title={`${activeChild.fullName} · Little Labels`}
+          >
+            {/* Exposed colored backing under the peeled corner */}
             <div
-              className="w-1.5 self-stretch transition-colors duration-300"
-              style={{ backgroundColor: activeChild.color }}
-            />
-            {/* Punched Tag Hole & Perforation Stub */}
-            <div className="px-2 py-2 flex items-center border-r border-dashed border-neutral-200/90 bg-neutral-50/50 self-stretch">
-              <span
-                className="w-2 h-2 rounded-full bg-[#F7F7F5] border-[1.5px] transition-colors duration-300"
-                style={{ borderColor: activeChild.color }}
-              />
+              className="absolute top-0 right-0 w-[22px] h-[22px] transition-colors duration-300"
+              style={{
+                backgroundColor: activeChild.color,
+                clipPath: 'polygon(0 0, 100% 0, 100% 100%)',
+              }}
+            >
+              {/* Subtle depth gradient along the diagonal crease */}
+              <div className="absolute inset-0 bg-gradient-to-br from-black/15 via-transparent to-transparent" />
             </div>
-            {/* Label Wordmark */}
-            <h1 className="font-brand text-[19px] font-bold tracking-tight text-neutral-900 leading-none px-3 py-1.5">
+
+            {/* Folded corner flap curling over the sticker */}
+            <svg
+              className="absolute top-0 right-0 w-[22px] h-[22px] pointer-events-none drop-shadow-[-1.5px_1.5px_2px_rgba(0,0,0,0.18)] transition-transform duration-200 group-hover:scale-105"
+              viewBox="0 0 22 22"
+              fill="none"
+            >
+              <defs>
+                <linearGradient id="header-peel-flap-grad" x1="0%" y1="100%" x2="100%" y2="0%">
+                  <stop offset="0%" stopColor="#ffffff" />
+                  <stop offset="70%" stopColor="#f3f4f6" />
+                  <stop offset="100%" stopColor="#d1d5db" />
+                </linearGradient>
+              </defs>
+              <polygon
+                points="0,0 0,22 22,22"
+                fill="url(#header-peel-flap-grad)"
+                stroke="#e5e7eb"
+                strokeWidth="0.5"
+              />
+              <line
+                x1="0"
+                y1="0"
+                x2="22"
+                y2="22"
+                stroke="rgba(255,255,255,0.85)"
+                strokeWidth="0.75"
+              />
+            </svg>
+
+            {/* Sticker wordmark */}
+            <h1 className="font-brand text-[20px] font-bold tracking-tight text-neutral-900 leading-none py-0.5">
               Little Labels
             </h1>
           </div>
