@@ -10,6 +10,7 @@ import {
   Sparkles,
   Droplets,
   Copy,
+  Settings,
 } from 'lucide-react';
 
 interface DailyLabelsScreenProps {
@@ -27,6 +28,7 @@ interface DailyLabelsScreenProps {
   onOpenEditModal: (label: LabelItem) => void;
   onGoToPreview: () => void;
   onGoToFavorites: () => void;
+  onGoToSettings: () => void;
 }
 
 export const DailyLabelsScreen: React.FC<DailyLabelsScreenProps> = ({
@@ -44,6 +46,7 @@ export const DailyLabelsScreen: React.FC<DailyLabelsScreenProps> = ({
   onOpenEditModal,
   onGoToPreview,
   onGoToFavorites,
+  onGoToSettings,
 }) => {
   // Helper to determine if an item is a liquid bottle (where amounts apply)
   const isLiquidBottle = (cat: string, contents: string) => {
@@ -69,24 +72,30 @@ export const DailyLabelsScreen: React.FC<DailyLabelsScreenProps> = ({
   };
 
   return (
-    <div className="w-full h-full flex flex-col bg-neutral-100/70 text-neutral-900 overflow-hidden font-sans">
+    <div className="w-full h-full flex flex-col bg-white text-neutral-900 font-sans">
       {/* Top Header */}
-      <div className="bg-white/95 backdrop-blur-md px-4 pt-3 pb-2.5 border-b border-neutral-200/80 shrink-0">
-        <div className="flex justify-between items-center mb-2.5">
+      <div className="bg-white/95 backdrop-blur-md px-4 pt-4 pb-3 border-b border-neutral-200/80 shrink-0 sticky top-0 z-20">
+        <div className="flex justify-between items-center mb-3">
           <div>
-            <span className="text-[10px] font-bold tracking-wider uppercase text-neutral-400">
-              Personalized Utility
-            </span>
             <h1 className="text-xl font-black tracking-tight text-neutral-900">Little Labels</h1>
           </div>
 
-          <button
-            onClick={onOpenAddModal}
-            className="w-8 h-8 rounded-full bg-neutral-100 hover:bg-neutral-200 flex items-center justify-center text-neutral-800 transition-colors shadow-2xs"
-            title="Add Custom Label"
-          >
-            <Plus className="w-4 h-4" />
-          </button>
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={onOpenAddModal}
+              className="w-8 h-8 rounded-full bg-neutral-100 hover:bg-neutral-200 flex items-center justify-center text-neutral-800 transition-colors shadow-2xs"
+              title="Add Custom Label"
+            >
+              <Plus className="w-4 h-4" />
+            </button>
+            <button
+              onClick={onGoToSettings}
+              className="w-8 h-8 rounded-full bg-neutral-100 hover:bg-neutral-200 flex items-center justify-center text-neutral-800 transition-colors shadow-2xs"
+              title="Settings & Child Profiles"
+            >
+              <Settings className="w-4 h-4" />
+            </button>
+          </div>
         </div>
 
         {/* Dynamic Child Switcher */}
@@ -132,8 +141,8 @@ export const DailyLabelsScreen: React.FC<DailyLabelsScreenProps> = ({
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="flex-1 overflow-y-auto px-3.5 py-3 space-y-3.5">
+      {/* Main Scrollable Content */}
+      <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4">
         {/* Speed Engine: Top 1-Tap Quick-Add Favorites */}
         <div>
           <div className="flex justify-between items-center mb-1.5 px-1">
@@ -145,11 +154,11 @@ export const DailyLabelsScreen: React.FC<DailyLabelsScreenProps> = ({
               className="text-[11px] text-neutral-500 hover:text-neutral-800 flex items-center gap-0.5 font-semibold"
             >
               <BookmarkCheck className="w-3 h-3" />
-              <span>Favorites</span>
+              <span>Favorites Library</span>
             </button>
           </div>
 
-          {/* Clean Neutral Food Chips (amounts shown only for liquids) */}
+          {/* Clean Neutral Food Chips */}
           <div className="flex gap-1.5 overflow-x-auto no-scrollbar py-0.5">
             {favorites.slice(0, 5).map((fav) => {
               const liquid = isLiquidBottle(fav.category, fav.title);
@@ -172,7 +181,7 @@ export const DailyLabelsScreen: React.FC<DailyLabelsScreenProps> = ({
           </div>
         </div>
 
-        {/* Daily Batch List: Steppers & Amounts for Liquids Only */}
+        {/* Daily Batch List */}
         <div>
           <div className="flex justify-between items-center mb-1.5 px-1">
             <div className="flex items-center gap-1.5">
@@ -224,7 +233,7 @@ export const DailyLabelsScreen: React.FC<DailyLabelsScreenProps> = ({
 
                   {/* Actions: Liquid Ounce Stepper (steps by 1 oz) + Duplicate Symbol Icon */}
                   <div className="flex items-center gap-1.5 shrink-0">
-                    {/* ONLY liquids get ounce steppers (stepping by 1 oz) */}
+                    {/* ONLY liquids get ounce steppers */}
                     {liquid ? (
                       <div className="flex items-center bg-neutral-100 rounded-lg p-0.5 border border-neutral-200">
                         <button
@@ -247,7 +256,7 @@ export const DailyLabelsScreen: React.FC<DailyLabelsScreenProps> = ({
                       </div>
                     ) : null}
 
-                    {/* Duplicate Symbol Icon (Universal iOS copy / duplicate sheets) */}
+                    {/* Duplicate Symbol Icon */}
                     <button
                       onClick={() => onDuplicateLabel(item.id)}
                       className="p-1.5 text-neutral-600 hover:text-neutral-900 bg-neutral-100 hover:bg-neutral-200 border border-neutral-200 rounded-lg active:scale-95 transition-all flex items-center justify-center shadow-2xs"
@@ -279,7 +288,7 @@ export const DailyLabelsScreen: React.FC<DailyLabelsScreenProps> = ({
       </div>
 
       {/* Floating Bottom Sticky Action Dock */}
-      <div className="bg-white/95 backdrop-blur-md p-3.5 border-t border-neutral-200 shrink-0 flex items-center justify-between gap-3 shadow-lg">
+      <div className="bg-white/95 backdrop-blur-md p-3.5 border-t border-neutral-200 shrink-0 flex items-center justify-between gap-3 shadow-lg sticky bottom-0 z-20">
         <div>
           <span className="text-xs font-bold text-neutral-900 block leading-tight">
             {labels.length} Labels to Print
