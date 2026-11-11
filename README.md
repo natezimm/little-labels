@@ -1,56 +1,62 @@
 # Little Labels
 
-A lightweight, mobile-first web app for parents preparing food, drinks, and bottles for children attending daycare. 
+A fast, mobile-first web application for parents preparing daily daycare food, drink, and bottle labels for Brother QL thermal label printers.
 
-Designed for speed, one-handed operation, and direct thermal printing on Brother QL label printers.
+Inspired by the calm simplicity of Things 3 and Apple Reminders, **Little Labels** lets you prepare an entire day's batch of stickers in seconds with minimal tapping.
 
 ---
 
-## Highlights
+## Features
 
-- **100% On-Device Privacy:** All child names, classrooms, and favorite food items are saved exclusively in your browser's `localStorage`. No personal data is ever uploaded to GitHub or any server.
-- **Speed First:** 1-tap rapid add from saved favorites, direct inline 1 oz bottle steppers, and 1-tap duplicate icon.
-- **Child Identity Tabs:** Color-coded child indicators for instant identity switching between children.
-- **Clean Hierarchy:** Solid foods (Breakfast, Lunch, Snacks) remain clean and uncluttered without unnecessary amounts, while bottles (Whole Milk, Formula, Water) feature dedicated ounce steppers.
-- **Brother QL Ready:** Physical 1:1 preview calibrated for Brother DK-1209 (2.1" × 1.1" / 62mm × 29mm) die-cut removable white stickers.
-- **Adaptive Desktop Mode:** Full 3-column productivity workspace with real-time thermal strip rendering.
+- **100% On-Device Privacy:** Child names, saved quick-add items, label batches, and formatting preferences are stored exclusively in your browser's `localStorage`. No personal data ever leaves your device.
+- **Independent Per-Child Workflows:** Each child has their own daily label batch and their own saved Quick Add items (e.g., toddler meals and whole milk for one child, infant formula bottles for another).
+- **Bottles & Drinks vs. Food & Snacks:** Automatically organizes labels with fluid ounces into **Bottles & Drinks** (with inline `[-]` / `[+]` 1 oz steppers) and solid foods into **Food & Snacks** (clean, uncluttered rows with no unnecessary amounts).
+- **Customizable Sticker Layouts:** Choose between three pre-calibrated layouts for Brother DK-1209 (2.1" × 1.1") removable thermal stickers:
+  - **Split Header (Default):** Child name on the left, date on the right, food/drink contents below.
+  - **Stacked:** Child name on line 1, date on line 2, contents on line 3.
+  - **Centered:** Balanced center alignment across all lines.
+- **US Date Formats & Smart Date Picker:** Defaults to **Tomorrow** with 1-tap `Today` / `Tomorrow` toggles, day steppers, a native calendar picker, and six compact US date formats (`MM/DD/YY`, `M/D/YY`, `MM/DD`, `MM-DD`, `Nov 11`, `Nov 11th`).
+- **8 Curated Child Color Themes:** Personalize each child's tab, header emblem, and primary print buttons with Baby Blue, Blush Pink, Lavender, Sage Green, Warm Amber, Coral Peach, Teal Ocean, or Slate Indigo—while keeping the physical thermal sticker preview strictly black and white.
 
 ---
 
 ## Project Structure
 
 ```text
-├── .github/
-│   └── workflows/
-│       └── deploy.yml          # Automated GitHub Pages deployment
-├── docs/
-│   ├── README.md               # Overview of archived design concepts
-│   └── archived-concepts/      # Concepts A, B, C and side-by-side comparison
+├── .github/workflows/deploy.yml  # Automated GitHub Pages deployment
+├── .vscode/                      # Editor settings & recommended extensions
+├── docs/                         # Archived initial design explorations
 ├── src/
-│   ├── App.tsx                 # Main application shell & localStorage sync
+│   ├── App.tsx                   # Root state, screen router & localStorage sync
 │   ├── components/
-│   │   ├── DailyLabelsScreen.tsx   # Screen 1: Daily labels & quick-add
-│   │   ├── Screen2AddEditLabel.tsx # Screen 2: Add/edit bottom sheet
-│   │   ├── Screen3Favorites.tsx    # Screen 3: Searchable favorites library
-│   │   ├── Screen4PrintPreview.tsx # Screen 4: Brother QL thermal print preview
-│   │   ├── Screen5Settings.tsx     # Screen 5: Child profiles & printer setup
-│   │   ├── DesktopLayout.tsx       # Desktop 3-column workspace
-│   │   └── ThermalLabel.tsx        # 1:1 Brother DK-1209 sticker renderer
+│   │   ├── DailyLabelsScreen.tsx     # Screen 1: Daily batch & Quick Add
+│   │   ├── Screen2AddEditLabel.tsx   # Screen 2: Add/edit bottom sheet (0.5–32 oz)
+│   │   ├── Screen3Favorites.tsx      # Screen 3: Per-child saved items manager
+│   │   ├── Screen4PrintPreview.tsx   # Screen 4: 1:1 Brother QL sticker roll preview
+│   │   ├── Screen5Settings.tsx       # Screen 5: Profiles, layouts, date formats & printer
+│   │   └── ThermalLabel.tsx          # 2.1" × 1.1" monochrome sticker renderer
 │   ├── data/
-│   │   ├── mockData.ts         # Generic fallback presets
-│   │   └── storage.ts          # On-device localStorage persistence
-│   └── types/
-│       └── index.ts            # Core TypeScript interfaces
+│   │   ├── mockData.ts           # Generic initial sample data
+│   │   └── storage.ts            # LocalStorage persistence layer
+│   ├── types/
+│   │   └── index.ts              # TypeScript interfaces
+│   └── utils/
+│       └── date.ts               # Date calculation & US formatting helpers
+├── AGENTS.md                     # Instructions for coding agents
+└── CLAUDE.md                     # Guidance for Claude Code
 ```
 
 ---
 
-## Running Locally
+## Local Development
 
 ```bash
-cd ~/Coding/little-labels
 npm install
 npm run dev
 ```
 
-Open `http://localhost:5173` to view the app.
+To type-check and build the production bundle:
+
+```bash
+npm run build
+```

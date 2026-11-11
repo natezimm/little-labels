@@ -28,7 +28,14 @@ const PRINTER_MODELS = [
   { id: 'Brother QL-1110NWB', label: 'Brother QL-1110NWB', desc: 'Wi-Fi / Bluetooth' },
 ];
 
-const DATE_FORMATS: DateFormat[] = ['MM/DD/YY', 'M/D/YY', 'DD/MM/YY', 'YYYY-MM-DD'];
+const DATE_FORMATS: { id: DateFormat; label: string }[] = [
+  { id: 'MM/DD/YY', label: 'MM/DD/YY' },
+  { id: 'M/D/YY', label: 'M/D/YY' },
+  { id: 'MM/DD', label: 'MM/DD' },
+  { id: 'MM-DD', label: 'MM-DD' },
+  { id: 'MMM D', label: 'Month & Day' },
+  { id: 'MMM Do', label: 'Month & Ordinal' },
+];
 
 const ACCENT_COLORS = [
   { name: 'Baby Blue', hex: '#0284C7' },
@@ -328,7 +335,7 @@ export const Screen5Settings: React.FC<Screen5SettingsProps> = ({
           </div>
         </section>
 
-        {/* Date Format Section */}
+        {/* Date Format Section (US Formats Only) */}
         <section>
           <div className="flex justify-between items-baseline mb-2 px-1">
             <h2 className="text-xs font-medium text-neutral-400 uppercase tracking-wider">
@@ -341,12 +348,12 @@ export const Screen5Settings: React.FC<Screen5SettingsProps> = ({
 
           <div className="grid grid-cols-2 gap-2">
             {DATE_FORMATS.map((fmt) => {
-              const isSelected = dateFormat === fmt;
+              const isSelected = dateFormat === fmt.id;
               return (
                 <button
-                  key={fmt}
+                  key={fmt.id}
                   type="button"
-                  onClick={() => onChangeDateFormat(fmt)}
+                  onClick={() => onChangeDateFormat(fmt.id)}
                   className={`py-2.5 px-3 rounded-xl border text-left flex items-center justify-between transition-all ${
                     isSelected
                       ? 'bg-neutral-900 text-white border-neutral-900 font-semibold shadow-2xs'
@@ -354,13 +361,15 @@ export const Screen5Settings: React.FC<Screen5SettingsProps> = ({
                   }`}
                 >
                   <div>
-                    <div className="text-xs">{fmt}</div>
+                    <div className="text-xs font-semibold">
+                      {formatLabelDate(selectedDateISO, fmt.id)}
+                    </div>
                     <div
-                      className={`text-[11px] mt-0.5 ${
+                      className={`text-[10px] mt-0.5 ${
                         isSelected ? 'text-neutral-300' : 'text-neutral-400'
                       }`}
                     >
-                      {formatLabelDate(selectedDateISO, fmt)}
+                      {fmt.label}
                     </div>
                   </div>
                   {isSelected && <Check className="w-3.5 h-3.5 shrink-0" />}

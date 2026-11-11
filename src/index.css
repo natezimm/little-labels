@@ -6,6 +6,18 @@
   }
 }
 
+/* Warm, crafted Apple rounded / editorial display stack for the Little Labels header */
+.font-brand {
+  font-family: ui-rounded, 'SF Pro Rounded', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  letter-spacing: -0.025em;
+}
+
+/* Editorial serif option if desired */
+.font-brand-serif {
+  font-family: ui-serif, 'New York', Georgia, Cambria, serif;
+  letter-spacing: -0.02em;
+}
+
 /* Custom thermal label typography and styling */
 .font-thermal {
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif;

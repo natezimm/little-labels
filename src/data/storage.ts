@@ -13,6 +13,15 @@ const STORAGE_KEYS = {
 
 const LEGACY_CHILDREN_KEY = 'little_labels_children';
 
+const VALID_DATE_FORMATS: DateFormat[] = [
+  'MM/DD/YY',
+  'M/D/YY',
+  'MM/DD',
+  'MM-DD',
+  'MMM D',
+  'MMM Do',
+];
+
 export const storage = {
   getChildren: (): Child[] => {
     try {
@@ -113,7 +122,7 @@ export const storage = {
   getDateFormat: (): DateFormat => {
     try {
       const fmt = localStorage.getItem(STORAGE_KEYS.DATE_FORMAT) as DateFormat | null;
-      if (fmt && ['MM/DD/YY', 'M/D/YY', 'DD/MM/YY', 'YYYY-MM-DD'].includes(fmt)) {
+      if (fmt && VALID_DATE_FORMATS.includes(fmt)) {
         return fmt;
       }
     } catch {
@@ -139,7 +148,7 @@ export const storage = {
     } catch {
       // ignore
     }
-    return 'split-header'; // default: Date on right, clean split header
+    return 'split-header';
   },
 
   saveLabelLayout: (layout: LabelLayout): void => {

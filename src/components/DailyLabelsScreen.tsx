@@ -179,15 +179,17 @@ export const DailyLabelsScreen: React.FC<DailyLabelsScreenProps> = ({
       {/* Clean iOS Header */}
       <header className="bg-white/90 backdrop-blur-md px-5 pt-4 pb-3 border-b border-neutral-200/60 sticky top-0 z-20">
         <div className="flex justify-between items-center mb-3.5">
-          <div className="flex items-center gap-2">
-            <h1 className="text-[22px] font-bold tracking-tight text-neutral-900">
+          <div className="flex items-center gap-2.5">
+            {/* Subtle die-cut label tag emblem in active child's color */}
+            <div
+              className="w-6 h-6 rounded-lg flex items-center justify-center shadow-2xs transition-colors duration-300"
+              style={{ backgroundColor: activeChild.color }}
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-white/90" />
+            </div>
+            <h1 className="font-brand text-[23px] font-bold tracking-tight text-neutral-900 leading-none">
               Little Labels
             </h1>
-            <span
-              className="w-2 h-2 rounded-full transition-colors duration-300"
-              style={{ backgroundColor: activeChild.color }}
-              title={`Active: ${activeChild.firstName}`}
-            />
           </div>
 
           <div className="flex items-center gap-2">
@@ -380,13 +382,13 @@ export const DailyLabelsScreen: React.FC<DailyLabelsScreenProps> = ({
           </div>
         </section>
 
-        {/* Section 1: Bottles (Items with Ounces) */}
+        {/* Section 1: Bottles & Drinks (Items with Ounces) */}
         {bottles.length > 0 && (
           <section>
             <div className="flex justify-between items-baseline mb-2">
               <div className="flex items-center gap-2">
                 <h2 className="text-xs font-semibold text-neutral-600 uppercase tracking-wider">
-                  Bottles
+                  Bottles & Drinks
                 </h2>
                 <span className="text-[11px] text-neutral-400 font-medium">
                   ({bottles.length})

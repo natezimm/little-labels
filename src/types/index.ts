@@ -1,4 +1,10 @@
-export type DateFormat = 'MM/DD/YY' | 'M/D/YY' | 'DD/MM/YY' | 'YYYY-MM-DD';
+export type DateFormat =
+  | 'MM/DD/YY'
+  | 'M/D/YY'
+  | 'MM/DD'
+  | 'MM-DD'
+  | 'MMM D'
+  | 'MMM Do';
 
 export type LabelLayout = 'split-header' | 'stacked' | 'centered';
 

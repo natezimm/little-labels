@@ -1,5 +1,24 @@
 import { DateFormat } from '../types';
 
+const SHORT_MONTHS = [
+  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+];
+
+function getOrdinalSuffix(day: number): string {
+  if (day > 3 && day < 21) return 'th';
+  switch (day % 10) {
+    case 1:
+      return 'st';
+    case 2:
+      return 'nd';
+    case 3:
+      return 'rd';
+    default:
+      return 'th';
+  }
+}
+
 export function toISODateString(date: Date): string {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -32,16 +51,21 @@ export function formatLabelDate(isoDate: string, format: DateFormat): string {
   const yy = String(year).slice(-2);
   const mm = String(month).padStart(2, '0');
   const dd = String(day).padStart(2, '0');
+  const mmm = SHORT_MONTHS[(month - 1) % 12] || 'Nov';
 
   switch (format) {
     case 'MM/DD/YY':
       return `${mm}/${dd}/${yy}`;
     case 'M/D/YY':
       return `${month}/${day}/${yy}`;
-    case 'DD/MM/YY':
-      return `${dd}/${mm}/${yy}`;
-    case 'YYYY-MM-DD':
-      return `${year}-${mm}-${dd}`;
+    case 'MM/DD':
+      return `${mm}/${dd}`;
+    case 'MM-DD':
+      return `${mm}-${dd}`;
+    case 'MMM D':
+      return `${mmm} ${day}`;
+    case 'MMM Do':
+      return `${mmm} ${day}${getOrdinalSuffix(day)}`;
     default:
       return `${mm}/${dd}/${yy}`;
   }
