@@ -6,16 +6,11 @@
   }
 }
 
-/* Warm, crafted Apple rounded / editorial display stack for the Little Labels header */
+/* Warm, crafted soft-serif display typography for the Little Labels wordmark */
 .font-brand {
-  font-family: ui-rounded, 'SF Pro Rounded', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-  letter-spacing: -0.025em;
-}
-
-/* Editorial serif option if desired */
-.font-brand-serif {
-  font-family: ui-serif, 'New York', Georgia, Cambria, serif;
-  letter-spacing: -0.02em;
+  font-family: 'Fraunces', ui-serif, 'New York', Georgia, serif;
+  font-variation-settings: "SOFT" 100, "opsz" 36;
+  letter-spacing: -0.03em;
 }
 
 /* Custom thermal label typography and styling */

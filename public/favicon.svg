@@ -1,23 +1,38 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
-  <!-- Sticker Shadow -->
-  <rect x="7" y="13" width="50" height="42" rx="10" fill="#000000" fill-opacity="0.12"/>
-  
-  <!-- Physical Die-Cut Thermal Sticker Body -->
-  <rect x="7" y="11" width="50" height="42" rx="10" fill="#FFFFFF" stroke="#E5E5E5" stroke-width="1.5"/>
-  
-  <!-- Subtle Tag Eyelet / Hanging Punch Hole -->
-  <circle cx="16" cy="20" r="3" fill="#F5F5F4" stroke="#D6D3D1" stroke-width="1"/>
-  
-  <!-- Thermal Printed Lines -->
-  <!-- Top Line: Bold Child Name Bar (tinted sky blue) -->
-  <rect x="23" y="18" width="28" height="4.5" rx="2" fill="#0284C7"/>
-  
-  <!-- Second Line: Date Stamp Bar -->
-  <rect x="23" y="26" width="16" height="3" rx="1.5" fill="#78716C"/>
-  
-  <!-- Third Line: Food / Bottle Contents Bar -->
-  <rect x="13" y="37" width="38" height="5.5" rx="2.5" fill="#1C1917"/>
-  
-  <!-- Subtle Perforation / Cut Line Guide on Right Edge -->
-  <path d="M53 18v2M53 23v2M53 28v2M53 33v2M53 38v2M53 43v2" stroke="#E7E5E4" stroke-width="1.5" stroke-linecap="round"/>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#1E293B"/>
+      <stop offset="100%" stop-color="#0F172A"/>
+    </linearGradient>
+    <linearGradient id="pinkTag" x1="16" y1="12" x2="52" y2="48" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FB7185"/>
+      <stop offset="100%" stop-color="#E11D48"/>
+    </linearGradient>
+    <linearGradient id="blueTag" x1="12" y1="16" x2="48" y2="52" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#38BDF8"/>
+      <stop offset="100%" stop-color="#0284C7"/>
+    </linearGradient>
+  </defs>
+
+  <!-- iOS Squircle Background -->
+  <rect x="2" y="2" width="60" height="60" rx="15" fill="url(#bg)" stroke="#334155" stroke-width="1.5"/>
+
+  <!-- Back Tag (Blush Pink, tilted) -->
+  <g transform="translate(34, 30) rotate(-32) translate(-28, -28)">
+    <path d="M14 14 H32 L46 28 L32 42 H14 C11.7909 42 10 40.2091 10 38 V18 C10 15.7909 11.7909 14 14 14 Z" fill="url(#pinkTag)"/>
+  </g>
+
+  <!-- Front Label Tag (Crisp White with Sky Blue Header Band, tilted) -->
+  <g transform="translate(30, 34) rotate(-45) translate(-28, -28)">
+    <!-- Drop shadow -->
+    <path d="M12 15 H33 L48 30 L33 45 H12 C9.79086 45 8 43.2091 8 41 V19 C8 16.7909 9.79086 15 12 15 Z" fill="#000000" fill-opacity="0.28" transform="translate(0, 2)"/>
+    <!-- White Tag Body -->
+    <path d="M12 15 H33 L48 30 L33 45 H12 C9.79086 45 8 43.2091 8 41 V19 C8 16.7909 9.79086 15 12 15 Z" fill="#FFFFFF"/>
+    <!-- Sky Blue Accent Stripe -->
+    <rect x="16" y="22" width="16" height="4.5" rx="2.25" fill="#0284C7"/>
+    <!-- Dark Content Stripe -->
+    <rect x="16" y="30" width="21" height="4.5" rx="2.25" fill="#0F172A"/>
+    <!-- Tag Hole Punch -->
+    <circle cx="40" cy="30" r="3" fill="#0F172A"/>
+  </g>
 </svg>

@@ -179,17 +179,15 @@ export const DailyLabelsScreen: React.FC<DailyLabelsScreenProps> = ({
       {/* Clean iOS Header */}
       <header className="bg-white/90 backdrop-blur-md px-5 pt-4 pb-3 border-b border-neutral-200/60 sticky top-0 z-20">
         <div className="flex justify-between items-center mb-3.5">
-          <div className="flex items-center gap-2.5">
-            {/* Subtle die-cut label tag emblem in active child's color */}
-            <div
-              className="w-6 h-6 rounded-lg flex items-center justify-center shadow-2xs transition-colors duration-300"
-              style={{ backgroundColor: activeChild.color }}
-            >
-              <span className="w-1.5 h-1.5 rounded-full bg-white/90" />
-            </div>
-            <h1 className="font-brand text-[23px] font-bold tracking-tight text-neutral-900 leading-none">
+          <div className="flex items-baseline gap-1.5">
+            <h1 className="font-brand text-[25px] font-bold tracking-tight text-neutral-900 leading-none">
               Little Labels
             </h1>
+            <span
+              className="w-2.5 h-2.5 rounded-full transition-colors duration-300 shrink-0 mb-0.5"
+              style={{ backgroundColor: activeChild.color }}
+              title={`Active: ${activeChild.firstName}`}
+            />
           </div>
 
           <div className="flex items-center gap-2">
