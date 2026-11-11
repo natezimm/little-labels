@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { ScreenId, Child, LabelItem, FavoriteItem } from './types';
+import React, { useState, useEffect, useMemo } from 'react';
+import { ScreenId, Child, LabelItem, FavoriteItem, DateFormat } from './types';
 import { storage } from './data/storage';
+import { formatLabelDate, getTomorrowISO } from './utils/date';
 import { DailyLabelsScreen } from './components/DailyLabelsScreen';
 import { Screen2AddEditLabel } from './components/Screen2AddEditLabel';
 import { Screen3Favorites } from './components/Screen3Favorites';
@@ -15,10 +16,15 @@ export const App: React.FC = () => {
   const [activeChild, setActiveChild] = useState<Child>(() => {
     const list = storage.getChildren();
     const savedId = storage.getActiveChildId();
-    const found = list.find((c) => c.id === savedId);
-    return found || list[0];
+    return list.find((c) => c.id === savedId) || list[0];
   });
-  const [date, setDate] = useState('11/10/26');
+
+  // Date & Formatting States (Defaults to Tomorrow)
+  const [selectedDateISO, setSelectedDateISO] = useState<string>(() => getTomorrowISO());
+  const [dateFormat, setDateFormat] = useState<DateFormat>(() => storage.getDateFormat());
+  const [printerModel, setPrinterModel] = useState<string>(() => storage.getPrinterModel());
+
+  // Labels & Favorites
   const [labels, setLabels] = useState<LabelItem[]>(() => storage.getLabels());
   const [favorites, setFavorites] = useState<FavoriteItem[]>(() => storage.getFavorites());
 
@@ -26,7 +32,7 @@ export const App: React.FC = () => {
   const [isAddEditOpen, setIsAddEditOpen] = useState(false);
   const [editingLabel, setEditingLabel] = useState<LabelItem | null>(null);
 
-  // Automatically sync to device localStorage
+  // Sync changes to localStorage
   useEffect(() => {
     storage.saveChildren(childrenList);
   }, [childrenList]);
@@ -45,31 +51,56 @@ export const App: React.FC = () => {
     }
   }, [activeChild]);
 
+  useEffect(() => {
+    storage.saveDateFormat(dateFormat);
+  }, [dateFormat]);
+
+  useEffect(() => {
+    storage.savePrinterModel(printerModel);
+  }, [printerModel]);
+
+  // Formatted date string for labels and previews
+  const formattedDate = useMemo(
+    () => formatLabelDate(selectedDateISO, dateFormat),
+    [selectedDateISO, dateFormat]
+  );
+
+  // Active child's own batch of labels
+  const activeChildLabels = useMemo(
+    () => labels.filter((l) => l.childId === activeChild.id),
+    [labels, activeChild.id]
+  );
+
+  // Count of labels per child for the child switcher badge
+  const allLabelsCountByChild = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const ch of childrenList) {
+      counts[ch.id] = 0;
+    }
+    for (const l of labels) {
+      counts[l.childId] = (counts[l.childId] || 0) + 1;
+    }
+    return counts;
+  }, [childrenList, labels]);
+
   // Handle Child Profile Updates from Settings
   const handleUpdateChildren = (updated: Child[]) => {
     setChildrenList(updated);
     const current = updated.find((c) => c.id === activeChild.id);
     if (current) {
       setActiveChild(current);
-      setLabels((prev) =>
-        prev.map((l) => (l.childId === current.id ? { ...l, childName: current.fullName } : l))
-      );
     } else if (updated.length > 0) {
       setActiveChild(updated[0]);
     }
   };
 
-  // Operations
+  // Label Operations (scoped to activeChild)
   const handleAddFromFavorite = (fav: FavoriteItem) => {
     const newItem: LabelItem = {
-      id: `l-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+      id: `l-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
       childId: activeChild.id,
-      childName: activeChild.fullName,
-      date,
-      category: fav.category,
       contents: fav.title,
-      quantity: fav.defaultQuantity,
-      copies: 1,
+      ounces: fav.defaultOunces ?? null,
     };
     setLabels((prev) => [...prev, newItem]);
   };
@@ -79,7 +110,7 @@ export const App: React.FC = () => {
     if (!target) return;
     const duplicated: LabelItem = {
       ...target,
-      id: `l-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+      id: `l-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
     };
     const index = labels.findIndex((l) => l.id === id);
     const updated = [...labels];
@@ -91,29 +122,30 @@ export const App: React.FC = () => {
     setLabels((prev) => prev.filter((l) => l.id !== id));
   };
 
-  const handleUpdateQuantity = (id: string, newQty: string) => {
+  const handleUpdateOunces = (id: string, nextOunces: number | null) => {
     setLabels((prev) =>
-      prev.map((l) => (l.id === id ? { ...l, quantity: newQty } : l))
+      prev.map((l) => (l.id === id ? { ...l, ounces: nextOunces } : l))
     );
   };
 
-  const handleSaveLabel = (data: Partial<LabelItem>) => {
+  const handleSaveLabel = (data: { contents: string; ounces: number | null; copies: number }) => {
     if (editingLabel) {
       setLabels((prev) =>
-        prev.map((l) => (l.id === editingLabel.id ? ({ ...l, ...data } as LabelItem) : l))
+        prev.map((l) =>
+          l.id === editingLabel.id
+            ? { ...l, contents: data.contents, ounces: data.ounces }
+            : l
+        )
       );
     } else {
-      const newItem: LabelItem = {
-        id: `l-${Date.now()}`,
+      const count = Math.max(1, data.copies || 1);
+      const newItems: LabelItem[] = Array.from({ length: count }, (_, idx) => ({
+        id: `l-${Date.now()}-${idx}-${Math.random().toString(36).slice(2, 6)}`,
         childId: activeChild.id,
-        childName: activeChild.fullName,
-        date,
-        category: data.category || 'Snack',
-        contents: data.contents || 'New Item',
-        quantity: data.quantity || '',
-        copies: data.copies || 1,
-      };
-      setLabels((prev) => [...prev, newItem]);
+        contents: data.contents,
+        ounces: data.ounces,
+      }));
+      setLabels((prev) => [...prev, ...newItems]);
     }
     setEditingLabel(null);
   };
@@ -127,8 +159,11 @@ export const App: React.FC = () => {
           onAddNewFavorite={(newFav) =>
             setFavorites((prev) => [...prev, { ...newFav, id: `f-${Date.now()}` }])
           }
+          onRemoveFavorite={(id) =>
+            setFavorites((prev) => prev.filter((f) => f.id !== id))
+          }
           onBack={() => setScreen('daily')}
-          activeChildName={activeChild.fullName}
+          activeChildName={activeChild.firstName}
         />
       );
     }
@@ -136,9 +171,11 @@ export const App: React.FC = () => {
     if (screen === 'preview') {
       return (
         <Screen4PrintPreview
-          labels={labels}
+          labels={activeChildLabels}
           onBack={() => setScreen('daily')}
-          activeChildName={activeChild.fullName}
+          activeChildFullName={activeChild.fullName}
+          formattedDate={formattedDate}
+          printerModel={printerModel}
         />
       );
     }
@@ -148,24 +185,31 @@ export const App: React.FC = () => {
         <Screen5Settings
           childrenList={childrenList}
           onUpdateChildren={handleUpdateChildren}
+          dateFormat={dateFormat}
+          onChangeDateFormat={setDateFormat}
+          printerModel={printerModel}
+          onChangePrinterModel={setPrinterModel}
+          selectedDateISO={selectedDateISO}
           onBack={() => setScreen('daily')}
         />
       );
     }
 
-    // Default: Screen 1 — Daily Labels
     return (
       <DailyLabelsScreen
         childrenList={childrenList}
         activeChild={activeChild}
         onSelectChild={setActiveChild}
-        date={date}
-        labels={labels}
+        selectedDateISO={selectedDateISO}
+        formattedDate={formattedDate}
+        onChangeDateISO={setSelectedDateISO}
+        labels={activeChildLabels}
+        allLabelsCountByChild={allLabelsCountByChild}
         favorites={favorites}
         onAddFromFavorite={handleAddFromFavorite}
         onDuplicateLabel={handleDuplicateLabel}
         onRemoveLabel={handleRemoveLabel}
-        onUpdateQuantity={handleUpdateQuantity}
+        onUpdateOunces={handleUpdateOunces}
         onOpenAddModal={() => {
           setEditingLabel(null);
           setIsAddEditOpen(true);
@@ -182,13 +226,11 @@ export const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-100 flex justify-center text-neutral-900 font-sans antialiased selection:bg-sky-500 selection:text-white">
-      {/* Real Mobile App Container: Full-width on mobile, centered clean container on desktop */}
-      <div className="w-full max-w-md min-h-screen bg-white flex flex-col shadow-2xl sm:border-x sm:border-neutral-200 relative">
+    <div className="min-h-screen bg-[#EFEEEC] flex justify-center text-neutral-900 font-sans antialiased selection:bg-sky-500 selection:text-white">
+      <div className="w-full max-w-md min-h-screen bg-[#F7F7F5] flex flex-col sm:shadow-sm sm:border-x sm:border-neutral-200/80 relative">
         {renderActiveScreen()}
       </div>
 
-      {/* Screen 2: Add/Edit Modal (Global Overlay) */}
       <Screen2AddEditLabel
         isOpen={isAddEditOpen}
         onClose={() => {
@@ -198,9 +240,10 @@ export const App: React.FC = () => {
         onSave={handleSaveLabel}
         initialData={editingLabel}
         childName={activeChild.fullName}
-        date={date}
+        formattedDate={formattedDate}
       />
     </div>
   );
 };
+
 export default App;

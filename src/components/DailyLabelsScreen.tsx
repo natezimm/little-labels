@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { Child, LabelItem, FavoriteItem } from '../types';
 import {
   Plus,
@@ -6,24 +6,33 @@ import {
   Trash2,
   Printer,
   Calendar,
-  BookmarkCheck,
-  Sparkles,
-  Droplets,
   Copy,
   Settings,
+  ChevronLeft,
+  ChevronRight,
+  SlidersHorizontal,
 } from 'lucide-react';
+import {
+  addDaysISO,
+  getFriendlyDateLabel,
+  getTodayISO,
+  getTomorrowISO,
+} from '../utils/date';
 
 interface DailyLabelsScreenProps {
   childrenList: Child[];
   activeChild: Child;
   onSelectChild: (c: Child) => void;
-  date: string;
+  selectedDateISO: string;
+  formattedDate: string;
+  onChangeDateISO: (iso: string) => void;
   labels: LabelItem[];
+  allLabelsCountByChild: Record<string, number>;
   favorites: FavoriteItem[];
   onAddFromFavorite: (fav: FavoriteItem) => void;
   onDuplicateLabel: (id: string) => void;
   onRemoveLabel: (id: string) => void;
-  onUpdateQuantity: (id: string, newQty: string) => void;
+  onUpdateOunces: (id: string, nextOunces: number | null) => void;
   onOpenAddModal: () => void;
   onOpenEditModal: (label: LabelItem) => void;
   onGoToPreview: () => void;
@@ -35,220 +44,280 @@ export const DailyLabelsScreen: React.FC<DailyLabelsScreenProps> = ({
   childrenList,
   activeChild,
   onSelectChild,
-  date,
+  selectedDateISO,
+  formattedDate,
+  onChangeDateISO,
   labels,
+  allLabelsCountByChild,
   favorites,
   onAddFromFavorite,
   onDuplicateLabel,
   onRemoveLabel,
-  onUpdateQuantity,
+  onUpdateOunces,
   onOpenAddModal,
   onOpenEditModal,
   onGoToPreview,
   onGoToFavorites,
   onGoToSettings,
 }) => {
-  // Helper to determine if an item is a liquid bottle (where amounts apply)
-  const isLiquidBottle = (cat: string, contents: string) => {
-    const c = cat.toLowerCase();
-    const txt = contents.toLowerCase();
-    return (
-      c === 'milk' ||
-      c === 'water' ||
-      txt.includes('milk') ||
-      txt.includes('water') ||
-      txt.includes('formula') ||
-      txt.includes('bottle')
-    );
-  };
+  const dateInputRef = useRef<HTMLInputElement>(null);
+  const todayISO = getTodayISO();
+  const tomorrowISO = getTomorrowISO();
+  const isToday = selectedDateISO === todayISO;
+  const isTomorrow = selectedDateISO === tomorrowISO;
 
-  // Helper for inline liquid ounce adjustments (steps by exactly 1 oz)
-  const handleStepOunces = (item: LabelItem, delta: number) => {
-    const current = item.quantity || '6 oz';
-    const matchOz = current.match(/(\d+)\s*oz/i);
-    const oz = matchOz ? parseInt(matchOz[1], 10) : 6;
-    const nextOz = Math.max(1, oz + delta); // Increase or decrease by 1 oz
-    onUpdateQuantity(item.id, `${nextOz} oz`);
+  // Helper to get soft pastel styles based on child's accent color
+  const getChildTabStyle = (ch: Child, isActive: boolean) => {
+    const isPink = ch.color.toLowerCase() === '#f43f5e' || ch.color.toLowerCase() === '#ec4899';
+    const isBlue = ch.color.toLowerCase() === '#0284c7' || ch.color.toLowerCase() === '#3b82f6';
+
+    if (isActive) {
+      if (isBlue) {
+        return 'bg-sky-50/90 border-sky-200/90 text-sky-950 shadow-2xs ring-1 ring-sky-200/60';
+      }
+      if (isPink) {
+        return 'bg-rose-50/90 border-rose-200/90 text-rose-950 shadow-2xs ring-1 ring-rose-200/60';
+      }
+      return 'bg-white border-neutral-300 text-neutral-900 shadow-2xs';
+    }
+
+    return 'bg-neutral-100/70 border-transparent text-neutral-500 hover:bg-neutral-100 hover:text-neutral-700';
   };
 
   return (
-    <div className="w-full h-full flex flex-col bg-white text-neutral-900 font-sans">
-      {/* Top Header */}
-      <div className="bg-white/95 backdrop-blur-md px-4 pt-4 pb-3 border-b border-neutral-200/80 shrink-0 sticky top-0 z-20">
-        <div className="flex justify-between items-center mb-3">
-          <div>
-            <h1 className="text-xl font-black tracking-tight text-neutral-900">Little Labels</h1>
-          </div>
+    <div className="w-full min-h-screen flex flex-col bg-[#F7F7F5] text-neutral-900 font-sans">
+      {/* Clean iOS Header */}
+      <header className="bg-white/90 backdrop-blur-md px-5 pt-4 pb-3 border-b border-neutral-200/60 sticky top-0 z-20">
+        <div className="flex justify-between items-center mb-3.5">
+          <h1 className="text-[22px] font-bold tracking-tight text-neutral-900">
+            Little Labels
+          </h1>
 
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-2">
             <button
               onClick={onOpenAddModal}
-              className="w-8 h-8 rounded-full bg-neutral-100 hover:bg-neutral-200 flex items-center justify-center text-neutral-800 transition-colors shadow-2xs"
-              title="Add Custom Label"
+              className="h-8 px-3 rounded-full bg-neutral-900 hover:bg-black text-white text-xs font-semibold flex items-center gap-1 shadow-2xs active:scale-95 transition-all"
+              title="New Label"
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="w-3.5 h-3.5" />
+              <span>New</span>
             </button>
             <button
               onClick={onGoToSettings}
-              className="w-8 h-8 rounded-full bg-neutral-100 hover:bg-neutral-200 flex items-center justify-center text-neutral-800 transition-colors shadow-2xs"
-              title="Settings & Child Profiles"
+              className="w-8 h-8 rounded-full bg-neutral-100 hover:bg-neutral-200/80 flex items-center justify-center text-neutral-600 transition-colors"
+              title="Settings"
             >
               <Settings className="w-4 h-4" />
             </button>
           </div>
         </div>
 
-        {/* Dynamic Child Switcher */}
-        <div className="grid grid-cols-2 gap-2 mb-2">
+        {/* Child Switcher (Baby Blue & Blush Pink accents) */}
+        <div className="grid grid-cols-2 gap-2 mb-3">
           {childrenList.map((ch) => {
             const isActive = ch.id === activeChild.id;
+            const count = allLabelsCountByChild[ch.id] || 0;
 
             return (
               <button
                 key={ch.id}
                 onClick={() => onSelectChild(ch)}
-                className={`py-2 px-3 rounded-2xl flex items-center justify-center gap-2 border transition-all ${
+                className={`py-2 px-3 rounded-xl flex items-center gap-2.5 border transition-all ${getChildTabStyle(
+                  ch,
                   isActive
-                    ? 'bg-white border-neutral-300 text-neutral-950 font-bold shadow-xs ring-2 ring-neutral-200'
-                    : 'bg-neutral-50/60 border-neutral-200 text-neutral-600 hover:bg-neutral-100'
-                }`}
+                )}`}
               >
                 <div
-                  className="w-5 h-5 rounded-full flex items-center justify-center text-[11px] font-extrabold text-white shadow-2xs shrink-0"
-                  style={{ backgroundColor: ch.color || '#0284C7' }}
+                  className="w-5 h-5 rounded-full flex items-center justify-center text-[11px] font-bold text-white shrink-0"
+                  style={{ backgroundColor: ch.color }}
                 >
                   {ch.avatarLetter}
                 </div>
-                <span className="text-xs truncate">{ch.firstName}</span>
-                {isActive && (
-                  <span
-                    className="w-1.5 h-1.5 rounded-full ml-auto shrink-0"
-                    style={{ backgroundColor: ch.color || '#0284C7' }}
-                  />
-                )}
+                <span className="text-[13px] font-semibold truncate">{ch.firstName}</span>
+                <span
+                  className={`ml-auto text-[11px] font-medium px-1.5 py-0.2 rounded-full ${
+                    isActive
+                      ? 'bg-white/80 text-neutral-700'
+                      : 'bg-neutral-200/70 text-neutral-500'
+                  }`}
+                >
+                  {count}
+                </span>
               </button>
             );
           })}
         </div>
 
-        {/* Compact Date Bar */}
-        <div className="bg-neutral-50 rounded-xl border border-neutral-200/80 px-3 py-1.5 flex items-center justify-between text-xs">
-          <div className="flex items-center gap-2 text-neutral-700 font-semibold">
-            <Calendar className="w-3.5 h-3.5 text-neutral-500" />
-            <span>Tomorrow's Labels (Nov 11)</span>
-          </div>
-          <span className="text-[11px] font-mono text-neutral-400">{date}</span>
-        </div>
-      </div>
-
-      {/* Main Scrollable Content */}
-      <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4">
-        {/* Speed Engine: Top 1-Tap Quick-Add Favorites */}
-        <div>
-          <div className="flex justify-between items-center mb-1.5 px-1">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-neutral-500 flex items-center gap-1">
-              <Sparkles className="w-3 h-3 text-neutral-400" /> 1-Tap Rapid Add
-            </span>
+        {/* Date Selector Bar */}
+        <div className="flex items-center justify-between bg-neutral-100/80 rounded-xl p-1 border border-neutral-200/50">
+          {/* Quick Today / Tomorrow Segmented Toggle */}
+          <div className="flex items-center gap-1">
             <button
-              onClick={onGoToFavorites}
-              className="text-[11px] text-neutral-500 hover:text-neutral-800 flex items-center gap-0.5 font-semibold"
+              type="button"
+              onClick={() => onChangeDateISO(todayISO)}
+              className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
+                isToday
+                  ? 'bg-white text-neutral-900 shadow-2xs font-semibold'
+                  : 'text-neutral-500 hover:text-neutral-800'
+              }`}
             >
-              <BookmarkCheck className="w-3 h-3" />
-              <span>Favorites Library</span>
+              Today
+            </button>
+            <button
+              type="button"
+              onClick={() => onChangeDateISO(tomorrowISO)}
+              className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
+                isTomorrow
+                  ? 'bg-white text-neutral-900 shadow-2xs font-semibold'
+                  : 'text-neutral-500 hover:text-neutral-800'
+              }`}
+            >
+              Tomorrow
             </button>
           </div>
 
-          {/* Clean Neutral Food Chips */}
-          <div className="flex gap-1.5 overflow-x-auto no-scrollbar py-0.5">
-            {favorites.slice(0, 5).map((fav) => {
-              const liquid = isLiquidBottle(fav.category, fav.title);
-              return (
-                <button
-                  key={fav.id}
-                  onClick={() => onAddFromFavorite(fav)}
-                  className="px-3 py-1.5 rounded-xl border border-neutral-200/90 bg-white hover:bg-neutral-50 hover:border-neutral-300 text-xs font-semibold text-neutral-800 shadow-2xs shrink-0 flex items-center gap-1.5 active:scale-95 transition-all"
-                >
-                  <Plus className="w-3 h-3 text-neutral-400" />
-                  <span>{fav.title}</span>
-                  {liquid && fav.defaultQuantity && (
-                    <span className="text-[10px] text-neutral-500 font-mono font-bold">
-                      ({fav.defaultQuantity})
-                    </span>
-                  )}
-                </button>
-              );
-            })}
+          {/* Date Picker & Day Steppers */}
+          <div className="flex items-center gap-0.5">
+            <button
+              type="button"
+              onClick={() => onChangeDateISO(addDaysISO(selectedDateISO, -1))}
+              className="p-1 text-neutral-400 hover:text-neutral-700 rounded-md hover:bg-white/60 transition-colors"
+              title="Previous day"
+            >
+              <ChevronLeft className="w-3.5 h-3.5" />
+            </button>
+
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => {
+                  if (dateInputRef.current?.showPicker) {
+                    dateInputRef.current.showPicker();
+                  } else {
+                    dateInputRef.current?.focus();
+                  }
+                }}
+                className="px-2 py-1 rounded-lg hover:bg-white/70 text-xs font-semibold text-neutral-800 flex items-center gap-1.5 transition-colors"
+                title="Choose date"
+              >
+                <Calendar className="w-3.5 h-3.5 text-neutral-400" />
+                <span>{formattedDate}</span>
+              </button>
+              <input
+                ref={dateInputRef}
+                type="date"
+                value={selectedDateISO}
+                onChange={(e) => {
+                  if (e.target.value) onChangeDateISO(e.target.value);
+                }}
+                className="sr-only"
+              />
+            </div>
+
+            <button
+              type="button"
+              onClick={() => onChangeDateISO(addDaysISO(selectedDateISO, 1))}
+              className="p-1 text-neutral-400 hover:text-neutral-700 rounded-md hover:bg-white/60 transition-colors"
+              title="Next day"
+            >
+              <ChevronRight className="w-3.5 h-3.5" />
+            </button>
           </div>
         </div>
+      </header>
 
-        {/* Daily Batch List */}
-        <div>
-          <div className="flex justify-between items-center mb-1.5 px-1">
-            <div className="flex items-center gap-1.5">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-neutral-500">
-                Daily Batch ({labels.length})
-              </span>
-              <span
-                className="text-[10px] font-bold px-1.5 py-0.2 rounded-md bg-neutral-100 text-neutral-800 border border-neutral-200"
-              >
-                For {activeChild.firstName}
-              </span>
-            </div>
-            <span className="text-[10px] text-neutral-400 font-medium">
-              Amounts on liquids only
+      {/* Main Content */}
+      <div className="flex-1 px-5 py-4 space-y-5">
+        {/* Quick Add Favorites */}
+        <section>
+          <div className="flex justify-between items-center mb-2">
+            <span className="text-xs font-medium text-neutral-400">
+              Quick Add
             </span>
+            <button
+              onClick={onGoToFavorites}
+              className="text-xs text-neutral-500 hover:text-neutral-900 flex items-center gap-1 font-medium transition-colors"
+            >
+              <SlidersHorizontal className="w-3 h-3" />
+              <span>Edit Saved</span>
+            </button>
           </div>
 
-          <div className="bg-white rounded-2xl border border-neutral-200/90 shadow-2xs divide-y divide-neutral-100 overflow-hidden">
+          <div className="flex flex-wrap gap-1.5">
+            {favorites.map((fav) => (
+              <button
+                key={fav.id}
+                onClick={() => onAddFromFavorite(fav)}
+                className="px-3 py-1.5 rounded-xl bg-white border border-neutral-200/80 hover:border-neutral-300 text-[13px] font-medium text-neutral-800 shadow-2xs flex items-center gap-1.5 active:scale-95 transition-all"
+              >
+                <Plus className="w-3.5 h-3.5 text-neutral-400" />
+                <span>{fav.title}</span>
+                {fav.defaultOunces ? (
+                  <span className="text-xs text-neutral-400 font-normal">
+                    {fav.defaultOunces} oz
+                  </span>
+                ) : null}
+              </button>
+            ))}
+          </div>
+        </section>
+
+        {/* Active Child's Label List */}
+        <section>
+          <div className="flex justify-between items-baseline mb-2">
+            <h2 className="text-xs font-medium text-neutral-400">
+              {activeChild.firstName}’s Labels · {getFriendlyDateLabel(selectedDateISO)}
+            </h2>
+            {labels.length > 0 && (
+              <span className="text-[11px] text-neutral-400">
+                Tap item to edit
+              </span>
+            )}
+          </div>
+
+          <div className="bg-white rounded-2xl border border-neutral-200/80 shadow-2xs divide-y divide-neutral-100 overflow-hidden">
             {labels.map((item) => {
-              const liquid = isLiquidBottle(item.category, item.contents);
+              const hasOunces = typeof item.ounces === 'number' && item.ounces > 0;
 
               return (
                 <div
                   key={item.id}
-                  className="p-3 flex items-center justify-between hover:bg-neutral-50/70 transition-colors gap-2"
+                  className="px-3.5 py-2.5 flex items-center justify-between hover:bg-neutral-50/60 transition-colors gap-2"
                 >
-                  {/* Category & Title */}
-                  <div
-                    className="min-w-0 flex-1 cursor-pointer"
+                  {/* Item Title */}
+                  <button
+                    type="button"
                     onClick={() => onOpenEditModal(item)}
+                    className="min-w-0 flex-1 text-left py-0.5 focus:outline-hidden"
                   >
-                    <div className="flex items-center gap-1.5 mb-0.5">
-                      <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.2 rounded-md bg-neutral-100 text-neutral-600 border border-neutral-200/80 font-mono">
-                        {item.category}
-                      </span>
-                    </div>
-                    <h3 className="text-xs font-bold text-neutral-900 leading-snug truncate">
+                    <div className="text-[14px] font-semibold text-neutral-900 leading-snug truncate">
                       {item.contents}
-                    </h3>
+                    </div>
+                  </button>
 
-                    {/* ONLY display amount line for liquids */}
-                    {liquid && item.quantity && (
-                      <div className="text-[11px] font-bold text-neutral-600 font-mono flex items-center gap-1">
-                        <Droplets className="w-2.5 h-2.5 text-neutral-400" />
-                        <span>{item.quantity}</span>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Actions: Liquid Ounce Stepper (steps by 1 oz) + Duplicate Symbol Icon */}
+                  {/* Right Controls: 1 oz Stepper (if liquid/bottle), Duplicate Icon, Delete Icon */}
                   <div className="flex items-center gap-1.5 shrink-0">
-                    {/* ONLY liquids get ounce steppers */}
-                    {liquid ? (
-                      <div className="flex items-center bg-neutral-100 rounded-lg p-0.5 border border-neutral-200">
+                    {hasOunces ? (
+                      <div className="flex items-center bg-neutral-100/90 rounded-lg p-0.5 border border-neutral-200/60">
                         <button
-                          onClick={() => handleStepOunces(item, -1)}
-                          className="w-6 h-6 flex items-center justify-center text-neutral-600 hover:text-neutral-900 bg-white rounded shadow-2xs active:scale-90 transition-transform"
+                          type="button"
+                          onClick={() =>
+                            onUpdateOunces(item.id, Math.max(1, (item.ounces || 6) - 1))
+                          }
+                          className="w-6 h-6 flex items-center justify-center text-neutral-600 hover:text-neutral-900 bg-white rounded-md shadow-2xs active:scale-90 transition-transform"
                           title="Decrease 1 oz"
                         >
                           <Minus className="w-3 h-3" />
                         </button>
-                        <span className="text-[11px] font-mono font-bold px-1.5 text-neutral-700 min-w-9 text-center">
-                          {item.quantity || '6 oz'}
+                        <span className="text-xs font-semibold px-2 text-neutral-800 min-w-[44px] text-center tabular-nums">
+                          {item.ounces} oz
                         </span>
                         <button
-                          onClick={() => handleStepOunces(item, 1)}
-                          className="w-6 h-6 flex items-center justify-center text-neutral-600 hover:text-neutral-900 bg-white rounded shadow-2xs active:scale-90 transition-transform"
+                          type="button"
+                          onClick={() =>
+                            onUpdateOunces(item.id, Math.min(24, (item.ounces || 6) + 1))
+                          }
+                          className="w-6 h-6 flex items-center justify-center text-neutral-600 hover:text-neutral-900 bg-white rounded-md shadow-2xs active:scale-90 transition-transform"
                           title="Increase 1 oz"
                         >
                           <Plus className="w-3 h-3" />
@@ -256,22 +325,24 @@ export const DailyLabelsScreen: React.FC<DailyLabelsScreenProps> = ({
                       </div>
                     ) : null}
 
-                    {/* Duplicate Symbol Icon */}
+                    {/* Duplicate Symbol */}
                     <button
+                      type="button"
                       onClick={() => onDuplicateLabel(item.id)}
-                      className="p-1.5 text-neutral-600 hover:text-neutral-900 bg-neutral-100 hover:bg-neutral-200 border border-neutral-200 rounded-lg active:scale-95 transition-all flex items-center justify-center shadow-2xs"
-                      title="Duplicate label"
+                      className="p-1.5 text-neutral-400 hover:text-neutral-800 hover:bg-neutral-100 rounded-lg active:scale-95 transition-all"
+                      title="Duplicate"
                     >
-                      <Copy className="w-3.5 h-3.5" />
+                      <Copy className="w-4 h-4" />
                     </button>
 
-                    {/* Trash */}
+                    {/* Remove */}
                     <button
+                      type="button"
                       onClick={() => onRemoveLabel(item.id)}
-                      className="p-1.5 text-neutral-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition-colors"
+                      className="p-1.5 text-neutral-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                       title="Remove"
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
+                      <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
@@ -279,32 +350,41 @@ export const DailyLabelsScreen: React.FC<DailyLabelsScreenProps> = ({
             })}
 
             {labels.length === 0 && (
-              <div className="py-8 text-center text-xs text-neutral-400">
-                All labels cleared. Tap the quick-add buttons above.
+              <div className="py-10 px-4 text-center">
+                <p className="text-sm text-neutral-400 font-medium">
+                  No labels for {activeChild.firstName} yet
+                </p>
+                <p className="text-xs text-neutral-400 mt-1">
+                  Tap any item above to add it to the list.
+                </p>
               </div>
             )}
           </div>
-        </div>
+        </section>
       </div>
 
-      {/* Floating Bottom Sticky Action Dock */}
-      <div className="bg-white/95 backdrop-blur-md p-3.5 border-t border-neutral-200 shrink-0 flex items-center justify-between gap-3 shadow-lg sticky bottom-0 z-20">
+      {/* Bottom Sticky Action Bar */}
+      <div className="bg-white/90 backdrop-blur-md px-5 py-3.5 border-t border-neutral-200/70 sticky bottom-0 z-20 flex items-center justify-between gap-3">
         <div>
-          <span className="text-xs font-bold text-neutral-900 block leading-tight">
-            {labels.length} Labels to Print
+          <span className="text-sm font-semibold text-neutral-900 block">
+            {labels.length} {labels.length === 1 ? 'Label' : 'Labels'}
           </span>
-          <span className="text-[10px] text-emerald-600 font-semibold flex items-center gap-1 mt-0.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            Brother QL-810W Ready
+          <span className="text-xs text-neutral-400">
+            {activeChild.fullName} · {formattedDate}
           </span>
         </div>
 
         <button
           onClick={onGoToPreview}
-          className="px-5 py-2.5 bg-neutral-900 hover:bg-black text-white text-xs font-bold rounded-full shadow-md flex items-center gap-2 active:scale-95 transition-all"
+          disabled={labels.length === 0}
+          className={`px-5 py-2.5 rounded-full text-xs font-semibold flex items-center gap-2 shadow-sm transition-all ${
+            labels.length === 0
+              ? 'bg-neutral-200 text-neutral-400 cursor-not-allowed'
+              : 'bg-neutral-900 hover:bg-black text-white active:scale-95'
+          }`}
         >
           <Printer className="w-3.5 h-3.5" />
-          <span>Print Labels ({labels.length})</span>
+          <span>Preview & Print</span>
         </button>
       </div>
     </div>

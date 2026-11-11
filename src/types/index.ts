@@ -1,14 +1,10 @@
-export type Category = 'Breakfast' | 'Lunch' | 'Snack' | 'Milk' | 'Water' | 'Supplies';
+export type DateFormat = 'MM/DD/YY' | 'M/D/YY' | 'DD/MM/YY' | 'YYYY-MM-DD';
 
 export interface LabelItem {
   id: string;
   childId: string;
-  childName: string;
-  date: string;
-  category: Category;
   contents: string;
-  quantity?: string;
-  copies?: number;
+  ounces?: number | null;
 }
 
 export interface Child {
@@ -18,17 +14,12 @@ export interface Child {
   fullName: string;
   color: string;
   avatarLetter: string;
-  room: string;
-  allergies?: string[];
 }
 
 export interface FavoriteItem {
   id: string;
   title: string;
-  category: Category;
-  defaultQuantity: string;
-  childScope: string;
-  popular?: boolean;
+  defaultOunces?: number | null;
 }
 
-export type ScreenId = 'daily' | 'add-edit' | 'favorites' | 'preview' | 'settings';
+export type ScreenId = 'daily' | 'favorites' | 'preview' | 'settings';

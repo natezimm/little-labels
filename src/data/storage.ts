@@ -1,20 +1,34 @@
-import { Child, FavoriteItem, LabelItem } from '../types';
+import { Child, DateFormat, FavoriteItem, LabelItem } from '../types';
 import { DEFAULT_CHILDREN, DEFAULT_FAVORITES, DEFAULT_LABELS } from './mockData';
 
 const STORAGE_KEYS = {
-  CHILDREN: 'little_labels_children',
-  FAVORITES: 'little_labels_favorites',
-  LABELS: 'little_labels_labels',
-  ACTIVE_CHILD: 'little_labels_active_child',
+  CHILDREN: 'little_labels_children_v2',
+  FAVORITES: 'little_labels_favorites_v2',
+  LABELS: 'little_labels_labels_v2',
+  ACTIVE_CHILD: 'little_labels_active_child_v2',
+  DATE_FORMAT: 'little_labels_date_format_v2',
+  PRINTER_MODEL: 'little_labels_printer_model_v2',
 };
+
+// Also check v1 keys for smooth migration of any saved child names
+const LEGACY_CHILDREN_KEY = 'little_labels_children';
 
 export const storage = {
   getChildren: (): Child[] => {
     try {
-      const data = localStorage.getItem(STORAGE_KEYS.CHILDREN);
+      const data = localStorage.getItem(STORAGE_KEYS.CHILDREN) || localStorage.getItem(LEGACY_CHILDREN_KEY);
       if (data) {
         const parsed = JSON.parse(data);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed.map((c: any) => ({
+            id: c.id,
+            firstName: c.firstName,
+            lastName: c.lastName || '',
+            fullName: c.fullName || c.firstName,
+            color: c.color || '#0284C7',
+            avatarLetter: (c.firstName || 'A').charAt(0).toUpperCase(),
+          }));
+        }
       }
     } catch (e) {
       console.warn('Failed to load children from localStorage', e);
@@ -88,14 +102,39 @@ export const storage = {
     }
   },
 
-  resetAll: (): void => {
+  getDateFormat: (): DateFormat => {
     try {
-      localStorage.removeItem(STORAGE_KEYS.CHILDREN);
-      localStorage.removeItem(STORAGE_KEYS.FAVORITES);
-      localStorage.removeItem(STORAGE_KEYS.LABELS);
-      localStorage.removeItem(STORAGE_KEYS.ACTIVE_CHILD);
+      const fmt = localStorage.getItem(STORAGE_KEYS.DATE_FORMAT) as DateFormat | null;
+      if (fmt && ['MM/DD/YY', 'M/D/YY', 'DD/MM/YY', 'YYYY-MM-DD'].includes(fmt)) {
+        return fmt;
+      }
+    } catch {
+      // ignore
+    }
+    return 'MM/DD/YY';
+  },
+
+  saveDateFormat: (format: DateFormat): void => {
+    try {
+      localStorage.setItem(STORAGE_KEYS.DATE_FORMAT, format);
     } catch (e) {
-      console.warn('Failed to reset localStorage', e);
+      console.warn('Failed to save date format', e);
+    }
+  },
+
+  getPrinterModel: (): string => {
+    try {
+      return localStorage.getItem(STORAGE_KEYS.PRINTER_MODEL) || 'Brother QL-810W';
+    } catch {
+      return 'Brother QL-810W';
+    }
+  },
+
+  savePrinterModel: (model: string): void => {
+    try {
+      localStorage.setItem(STORAGE_KEYS.PRINTER_MODEL, model);
+    } catch (e) {
+      console.warn('Failed to save printer model', e);
     }
   },
 };
