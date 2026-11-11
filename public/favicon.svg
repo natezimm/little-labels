@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <!-- Sticker Shadow -->
+  <rect x="7" y="13" width="50" height="42" rx="10" fill="#000000" fill-opacity="0.12"/>
+  
+  <!-- Physical Die-Cut Thermal Sticker Body -->
+  <rect x="7" y="11" width="50" height="42" rx="10" fill="#FFFFFF" stroke="#E5E5E5" stroke-width="1.5"/>
+  
+  <!-- Subtle Tag Eyelet / Hanging Punch Hole -->
+  <circle cx="16" cy="20" r="3" fill="#F5F5F4" stroke="#D6D3D1" stroke-width="1"/>
+  
+  <!-- Thermal Printed Lines -->
+  <!-- Top Line: Bold Child Name Bar (tinted sky blue) -->
+  <rect x="23" y="18" width="28" height="4.5" rx="2" fill="#0284C7"/>
+  
+  <!-- Second Line: Date Stamp Bar -->
+  <rect x="23" y="26" width="16" height="3" rx="1.5" fill="#78716C"/>
+  
+  <!-- Third Line: Food / Bottle Contents Bar -->
+  <rect x="13" y="37" width="38" height="5.5" rx="2.5" fill="#1C1917"/>
+  
+  <!-- Subtle Perforation / Cut Line Guide on Right Edge -->
+  <path d="M53 18v2M53 23v2M53 28v2M53 33v2M53 38v2M53 43v2" stroke="#E7E5E4" stroke-width="1.5" stroke-linecap="round"/>
+</svg>
