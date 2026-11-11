@@ -179,15 +179,24 @@ export const DailyLabelsScreen: React.FC<DailyLabelsScreenProps> = ({
       {/* Clean iOS Header */}
       <header className="bg-white/90 backdrop-blur-md px-5 pt-4 pb-3 border-b border-neutral-200/60 sticky top-0 z-20">
         <div className="flex justify-between items-center mb-3.5">
-          <div className="flex items-baseline gap-1.5">
-            <h1 className="font-brand text-[25px] font-bold tracking-tight text-neutral-900 leading-none">
+          {/* Title styled as a tactile die-cut physical label */}
+          <div className="inline-flex items-center bg-white border border-neutral-300/90 rounded-lg shadow-[0_1px_3px_rgba(0,0,0,0.06)] overflow-hidden -rotate-[1deg] hover:rotate-0 transition-transform duration-200 select-none">
+            {/* Left Child-Colored Accent Band */}
+            <div
+              className="w-1.5 self-stretch transition-colors duration-300"
+              style={{ backgroundColor: activeChild.color }}
+            />
+            {/* Punched Tag Hole & Perforation Stub */}
+            <div className="px-2 py-2 flex items-center border-r border-dashed border-neutral-200/90 bg-neutral-50/50 self-stretch">
+              <span
+                className="w-2 h-2 rounded-full bg-[#F7F7F5] border-[1.5px] transition-colors duration-300"
+                style={{ borderColor: activeChild.color }}
+              />
+            </div>
+            {/* Label Wordmark */}
+            <h1 className="font-brand text-[19px] font-bold tracking-tight text-neutral-900 leading-none px-3 py-1.5">
               Little Labels
             </h1>
-            <span
-              className="w-2.5 h-2.5 rounded-full transition-colors duration-300 shrink-0 mb-0.5"
-              style={{ backgroundColor: activeChild.color }}
-              title={`Active: ${activeChild.firstName}`}
-            />
           </div>
 
           <div className="flex items-center gap-2">
