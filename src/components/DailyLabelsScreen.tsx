@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useMemo } from 'react';
 import { Child, LabelItem, FavoriteItem } from '../types';
 import {
   Plus,
@@ -11,7 +11,6 @@ import {
   ChevronLeft,
   ChevronRight,
   SlidersHorizontal,
-  Droplets,
 } from 'lucide-react';
 import {
   addDaysISO,
@@ -67,7 +66,11 @@ export const DailyLabelsScreen: React.FC<DailyLabelsScreenProps> = ({
   const isToday = selectedDateISO === todayISO;
   const isTomorrow = selectedDateISO === tomorrowISO;
 
-  // Soft pastel colors based on child's accent
+  // Separate labels into Bottles (items with ounces) and Food (items without ounces)
+  const bottles = useMemo(() => labels.filter((l) => typeof l.ounces === 'number' && l.ounces > 0), [labels]);
+  const foods = useMemo(() => labels.filter((l) => !(typeof l.ounces === 'number' && l.ounces > 0)), [labels]);
+
+  // Soft pastel styles based on child's accent color
   const isPink =
     activeChild.color.toLowerCase() === '#f43f5e' ||
     activeChild.color.toLowerCase() === '#ec4899';
@@ -98,6 +101,79 @@ export const DailyLabelsScreen: React.FC<DailyLabelsScreenProps> = ({
     return 'bg-neutral-100/70 border-transparent text-neutral-500 hover:bg-neutral-100 hover:text-neutral-700';
   };
 
+  const renderLabelRow = (item: LabelItem) => {
+    const hasOunces = typeof item.ounces === 'number' && item.ounces > 0;
+
+    return (
+      <div
+        key={item.id}
+        className="px-3.5 py-2.5 flex items-center justify-between hover:bg-neutral-50/60 transition-colors gap-2"
+      >
+        {/* Item Title */}
+        <button
+          type="button"
+          onClick={() => onOpenEditModal(item)}
+          className="min-w-0 flex-1 text-left py-0.5 focus:outline-hidden"
+        >
+          <div className="text-[14px] font-semibold text-neutral-900 leading-snug truncate">
+            {item.contents}
+          </div>
+        </button>
+
+        {/* Right Controls: 1 oz Stepper (for bottles), Duplicate Icon, Delete Icon */}
+        <div className="flex items-center gap-1.5 shrink-0">
+          {hasOunces ? (
+            <div className="flex items-center bg-neutral-100/90 rounded-lg p-0.5 border border-neutral-200/60">
+              <button
+                type="button"
+                onClick={() =>
+                  onUpdateOunces(item.id, Math.max(1, (item.ounces || 6) - 1))
+                }
+                className="w-6 h-6 flex items-center justify-center text-neutral-600 hover:text-neutral-900 bg-white rounded-md shadow-2xs active:scale-90 transition-transform"
+                title="Decrease 1 oz"
+              >
+                <Minus className="w-3 h-3" />
+              </button>
+              <span className="text-xs font-semibold px-2 text-neutral-800 min-w-[46px] text-center tabular-nums">
+                {item.ounces} oz
+              </span>
+              <button
+                type="button"
+                onClick={() =>
+                  onUpdateOunces(item.id, Math.min(24, (item.ounces || 6) + 1))
+                }
+                className="w-6 h-6 flex items-center justify-center text-neutral-600 hover:text-neutral-900 bg-white rounded-md shadow-2xs active:scale-90 transition-transform"
+                title="Increase 1 oz"
+              >
+                <Plus className="w-3 h-3" />
+              </button>
+            </div>
+          ) : null}
+
+          {/* Duplicate Symbol */}
+          <button
+            type="button"
+            onClick={() => onDuplicateLabel(item.id)}
+            className="p-1.5 text-neutral-400 hover:text-neutral-800 hover:bg-neutral-100 rounded-lg active:scale-95 transition-all"
+            title="Duplicate"
+          >
+            <Copy className="w-4 h-4" />
+          </button>
+
+          {/* Remove */}
+          <button
+            type="button"
+            onClick={() => onRemoveLabel(item.id)}
+            className="p-1.5 text-neutral-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+            title="Remove"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="w-full min-h-screen flex flex-col bg-[#F7F7F5] text-neutral-900 font-sans">
       {/* Clean iOS Header */}
@@ -117,7 +193,8 @@ export const DailyLabelsScreen: React.FC<DailyLabelsScreenProps> = ({
           <div className="flex items-center gap-2">
             <button
               onClick={onOpenAddModal}
-              className="h-8 px-3 rounded-full bg-neutral-900 hover:bg-black text-white text-xs font-semibold flex items-center gap-1 shadow-2xs active:scale-95 transition-all"
+              className="h-8 px-3 rounded-full text-white text-xs font-semibold flex items-center gap-1 shadow-2xs active:scale-95 transition-all"
+              style={{ backgroundColor: activeChild.color }}
               title="New Label"
             >
               <Plus className="w-3.5 h-3.5" />
@@ -303,124 +380,64 @@ export const DailyLabelsScreen: React.FC<DailyLabelsScreenProps> = ({
           </div>
         </section>
 
-        {/* Active Child's Label List */}
-        <section>
-          <div className="flex justify-between items-baseline mb-2">
-            <div className="flex items-center gap-1.5">
-              <h2 className="text-xs font-medium text-neutral-400">
-                {activeChild.firstName}’s Labels
-              </h2>
-              <span className="text-xs text-neutral-300">·</span>
-              <span className="text-xs text-neutral-400">
-                {getFriendlyDateLabel(selectedDateISO)}
-              </span>
-            </div>
-            {labels.length > 0 && (
-              <span className="text-[11px] text-neutral-400">
-                Tap item to edit
-              </span>
-            )}
-          </div>
-
-          <div className="bg-white rounded-2xl border border-neutral-200/80 shadow-2xs divide-y divide-neutral-100 overflow-hidden">
-            {labels.map((item) => {
-              const hasOunces = typeof item.ounces === 'number' && item.ounces > 0;
-
-              return (
-                <div
-                  key={item.id}
-                  className="px-3.5 py-2.5 flex items-center justify-between hover:bg-neutral-50/60 transition-colors gap-2"
-                >
-                  {/* Item Title */}
-                  <button
-                    type="button"
-                    onClick={() => onOpenEditModal(item)}
-                    className="min-w-0 flex-1 text-left py-0.5 focus:outline-hidden"
-                  >
-                    <div className="text-[14px] font-semibold text-neutral-900 leading-snug truncate">
-                      {item.contents}
-                    </div>
-                  </button>
-
-                  {/* Right Controls: 1 oz Stepper (if liquid/bottle), Duplicate Icon, Delete Icon */}
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    {hasOunces ? (
-                      <div className="flex items-center bg-neutral-100/90 rounded-lg p-0.5 border border-neutral-200/60">
-                        <button
-                          type="button"
-                          onClick={() =>
-                            onUpdateOunces(item.id, Math.max(1, (item.ounces || 6) - 1))
-                          }
-                          className="w-6 h-6 flex items-center justify-center text-neutral-600 hover:text-neutral-900 bg-white rounded-md shadow-2xs active:scale-90 transition-transform"
-                          title="Decrease 1 oz"
-                        >
-                          <Minus className="w-3 h-3" />
-                        </button>
-                        <div className="flex items-center gap-1 px-1.5">
-                          <Droplets
-                            className="w-2.5 h-2.5 opacity-80"
-                            style={{ color: activeChild.color }}
-                          />
-                          <span className="text-xs font-semibold text-neutral-800 min-w-[32px] text-center tabular-nums">
-                            {item.ounces} oz
-                          </span>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() =>
-                            onUpdateOunces(item.id, Math.min(24, (item.ounces || 6) + 1))
-                          }
-                          className="w-6 h-6 flex items-center justify-center text-neutral-600 hover:text-neutral-900 bg-white rounded-md shadow-2xs active:scale-90 transition-transform"
-                          title="Increase 1 oz"
-                        >
-                          <Plus className="w-3 h-3" />
-                        </button>
-                      </div>
-                    ) : null}
-
-                    {/* Duplicate Symbol */}
-                    <button
-                      type="button"
-                      onClick={() => onDuplicateLabel(item.id)}
-                      className="p-1.5 text-neutral-400 hover:text-neutral-800 hover:bg-neutral-100 rounded-lg active:scale-95 transition-all"
-                      title="Duplicate"
-                    >
-                      <Copy className="w-4 h-4" />
-                    </button>
-
-                    {/* Remove */}
-                    <button
-                      type="button"
-                      onClick={() => onRemoveLabel(item.id)}
-                      className="p-1.5 text-neutral-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                      title="Remove"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-
-            {labels.length === 0 && (
-              <div className="py-10 px-4 text-center">
-                <p className="text-sm text-neutral-400 font-medium">
-                  No labels for {activeChild.firstName} yet
-                </p>
-                <p className="text-xs text-neutral-400 mt-1">
-                  Tap any item above to add it to the list.
-                </p>
+        {/* Section 1: Bottles (Items with Ounces) */}
+        {bottles.length > 0 && (
+          <section>
+            <div className="flex justify-between items-baseline mb-2">
+              <div className="flex items-center gap-2">
+                <h2 className="text-xs font-semibold text-neutral-600 uppercase tracking-wider">
+                  Bottles
+                </h2>
+                <span className="text-[11px] text-neutral-400 font-medium">
+                  ({bottles.length})
+                </span>
               </div>
-            )}
+            </div>
+
+            <div className="bg-white rounded-2xl border border-neutral-200/80 shadow-2xs divide-y divide-neutral-100 overflow-hidden">
+              {bottles.map(renderLabelRow)}
+            </div>
+          </section>
+        )}
+
+        {/* Section 2: Food & Snacks (Items without Ounces) */}
+        {foods.length > 0 && (
+          <section>
+            <div className="flex justify-between items-baseline mb-2">
+              <div className="flex items-center gap-2">
+                <h2 className="text-xs font-semibold text-neutral-600 uppercase tracking-wider">
+                  Food & Snacks
+                </h2>
+                <span className="text-[11px] text-neutral-400 font-medium">
+                  ({foods.length})
+                </span>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-2xl border border-neutral-200/80 shadow-2xs divide-y divide-neutral-100 overflow-hidden">
+              {foods.map(renderLabelRow)}
+            </div>
+          </section>
+        )}
+
+        {/* Empty State */}
+        {labels.length === 0 && (
+          <div className="py-14 px-4 text-center bg-white rounded-2xl border border-neutral-200/80 shadow-2xs">
+            <p className="text-sm text-neutral-500 font-semibold">
+              No labels for {activeChild.firstName} yet
+            </p>
+            <p className="text-xs text-neutral-400 mt-1">
+              Tap any item in Quick Add above or tap + New to create one.
+            </p>
           </div>
-        </section>
+        )}
       </div>
 
-      {/* Bottom Sticky Action Bar */}
+      {/* Bottom Sticky Action Bar: Primary Print Button with Child's Hue */}
       <div className="bg-white/90 backdrop-blur-md px-5 py-3.5 border-t border-neutral-200/70 sticky bottom-0 z-20 flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <div
-            className="w-2 h-2 rounded-full"
+            className="w-2.5 h-2.5 rounded-full"
             style={{ backgroundColor: activeChild.color }}
           />
           <div>
@@ -436,11 +453,10 @@ export const DailyLabelsScreen: React.FC<DailyLabelsScreenProps> = ({
         <button
           onClick={onGoToPreview}
           disabled={labels.length === 0}
-          className={`px-5 py-2.5 rounded-full text-xs font-semibold flex items-center gap-2 shadow-sm transition-all ${
-            labels.length === 0
-              ? 'bg-neutral-200 text-neutral-400 cursor-not-allowed'
-              : 'bg-neutral-900 hover:bg-black text-white active:scale-95'
+          className={`px-6 py-2.5 rounded-full text-xs font-semibold text-white flex items-center gap-2 shadow-sm transition-all active:scale-95 ${
+            labels.length === 0 ? 'opacity-40 cursor-not-allowed bg-neutral-300' : 'hover:opacity-95'
           }`}
+          style={{ backgroundColor: labels.length === 0 ? undefined : activeChild.color }}
         >
           <Printer className="w-3.5 h-3.5" />
           <span>Preview & Print</span>

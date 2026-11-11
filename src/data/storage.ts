@@ -1,12 +1,13 @@
-import { Child, DateFormat, FavoriteItem, LabelItem } from '../types';
+import { Child, DateFormat, FavoriteItem, LabelItem, LabelLayout } from '../types';
 import { DEFAULT_CHILDREN, DEFAULT_FAVORITES, DEFAULT_LABELS } from './mockData';
 
 const STORAGE_KEYS = {
   CHILDREN: 'little_labels_children_v2',
-  FAVORITES: 'little_labels_favorites_v3', // bumped for per-child favorites migration
+  FAVORITES: 'little_labels_favorites_v3',
   LABELS: 'little_labels_labels_v2',
   ACTIVE_CHILD: 'little_labels_active_child_v2',
   DATE_FORMAT: 'little_labels_date_format_v2',
+  LABEL_LAYOUT: 'little_labels_layout_v2',
   PRINTER_MODEL: 'little_labels_printer_model_v2',
 };
 
@@ -49,7 +50,6 @@ export const storage = {
       if (data) {
         const parsed = JSON.parse(data);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          // Ensure every item has a valid childId
           const fallbackChildId = childrenList?.[0]?.id || 'child-1';
           return parsed.map((f: any) => ({
             id: f.id,
@@ -127,6 +127,26 @@ export const storage = {
       localStorage.setItem(STORAGE_KEYS.DATE_FORMAT, format);
     } catch (e) {
       console.warn('Failed to save date format', e);
+    }
+  },
+
+  getLabelLayout: (): LabelLayout => {
+    try {
+      const l = localStorage.getItem(STORAGE_KEYS.LABEL_LAYOUT) as LabelLayout | null;
+      if (l && ['split-header', 'stacked', 'centered'].includes(l)) {
+        return l;
+      }
+    } catch {
+      // ignore
+    }
+    return 'split-header'; // default: Date on right, clean split header
+  },
+
+  saveLabelLayout: (layout: LabelLayout): void => {
+    try {
+      localStorage.setItem(STORAGE_KEYS.LABEL_LAYOUT, layout);
+    } catch (e) {
+      console.warn('Failed to save label layout', e);
     }
   },
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { ScreenId, Child, LabelItem, FavoriteItem, DateFormat } from './types';
+import { ScreenId, Child, LabelItem, FavoriteItem, DateFormat, LabelLayout } from './types';
 import { storage } from './data/storage';
 import { formatLabelDate, getTomorrowISO } from './utils/date';
 import { DailyLabelsScreen } from './components/DailyLabelsScreen';
@@ -19,9 +19,10 @@ export const App: React.FC = () => {
     return list.find((c) => c.id === savedId) || list[0];
   });
 
-  // Date & Formatting States (Defaults to Tomorrow)
+  // Date, Formatting & Layout States (Defaults to Tomorrow & Split Header)
   const [selectedDateISO, setSelectedDateISO] = useState<string>(() => getTomorrowISO());
   const [dateFormat, setDateFormat] = useState<DateFormat>(() => storage.getDateFormat());
+  const [labelLayout, setLabelLayout] = useState<LabelLayout>(() => storage.getLabelLayout());
   const [printerModel, setPrinterModel] = useState<string>(() => storage.getPrinterModel());
 
   // Labels & Favorites (both scoped per child)
@@ -54,6 +55,10 @@ export const App: React.FC = () => {
   useEffect(() => {
     storage.saveDateFormat(dateFormat);
   }, [dateFormat]);
+
+  useEffect(() => {
+    storage.saveLabelLayout(labelLayout);
+  }, [labelLayout]);
 
   useEffect(() => {
     storage.savePrinterModel(printerModel);
@@ -187,6 +192,7 @@ export const App: React.FC = () => {
           activeChildAvatar={activeChild.avatarLetter}
           formattedDate={formattedDate}
           printerModel={printerModel}
+          labelLayout={labelLayout}
         />
       );
     }
@@ -198,6 +204,8 @@ export const App: React.FC = () => {
           onUpdateChildren={handleUpdateChildren}
           dateFormat={dateFormat}
           onChangeDateFormat={setDateFormat}
+          labelLayout={labelLayout}
+          onChangeLabelLayout={setLabelLayout}
           printerModel={printerModel}
           onChangePrinterModel={setPrinterModel}
           selectedDateISO={selectedDateISO}

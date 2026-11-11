@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Child, DateFormat } from '../types';
+import { Child, DateFormat, LabelLayout } from '../types';
 import { formatLabelDate } from '../utils/date';
 import {
   ArrowLeft,
@@ -14,6 +14,8 @@ interface Screen5SettingsProps {
   onUpdateChildren: (children: Child[]) => void;
   dateFormat: DateFormat;
   onChangeDateFormat: (fmt: DateFormat) => void;
+  labelLayout: LabelLayout;
+  onChangeLabelLayout: (layout: LabelLayout) => void;
   printerModel: string;
   onChangePrinterModel: (model: string) => void;
   selectedDateISO: string;
@@ -31,8 +33,30 @@ const DATE_FORMATS: DateFormat[] = ['MM/DD/YY', 'M/D/YY', 'DD/MM/YY', 'YYYY-MM-D
 const ACCENT_COLORS = [
   { name: 'Baby Blue', hex: '#0284C7' },
   { name: 'Blush Pink', hex: '#F43F5E' },
+  { name: 'Lavender', hex: '#8B5CF6' },
   { name: 'Sage Green', hex: '#10B981' },
   { name: 'Warm Amber', hex: '#F59E0B' },
+  { name: 'Coral Peach', hex: '#FB923C' },
+  { name: 'Teal Ocean', hex: '#0D9488' },
+  { name: 'Slate Indigo', hex: '#6366F1' },
+];
+
+const LABEL_LAYOUTS: { id: LabelLayout; title: string; subtitle: string }[] = [
+  {
+    id: 'split-header',
+    title: 'Split Header',
+    subtitle: 'Name on left · Date on right (more room for food)',
+  },
+  {
+    id: 'stacked',
+    title: 'Stacked',
+    subtitle: 'Name on top line · Date underneath',
+  },
+  {
+    id: 'centered',
+    title: 'Centered',
+    subtitle: 'Clean balanced center alignment',
+  },
 ];
 
 export const Screen5Settings: React.FC<Screen5SettingsProps> = ({
@@ -40,6 +64,8 @@ export const Screen5Settings: React.FC<Screen5SettingsProps> = ({
   onUpdateChildren,
   dateFormat,
   onChangeDateFormat,
+  labelLayout,
+  onChangeLabelLayout,
   printerModel,
   onChangePrinterModel,
   selectedDateISO,
@@ -86,7 +112,7 @@ export const Screen5Settings: React.FC<Screen5SettingsProps> = ({
       firstName: 'Child',
       lastName: childrenList[0]?.lastName || '',
       fullName: childrenList[0]?.lastName ? `Child ${childrenList[0].lastName}` : 'Child',
-      color: childrenList.length % 2 === 0 ? '#0284C7' : '#F43F5E',
+      color: ACCENT_COLORS[childrenList.length % ACCENT_COLORS.length].hex,
       avatarLetter: 'C',
     };
     const updated = [...childrenList, newChild];
@@ -141,7 +167,7 @@ export const Screen5Settings: React.FC<Screen5SettingsProps> = ({
               >
                 <div className="flex items-center gap-3 min-w-0">
                   <div
-                    className="w-7 h-7 rounded-full flex items-center justify-center font-bold text-white text-xs shrink-0"
+                    className="w-7 h-7 rounded-full flex items-center justify-center font-bold text-white text-xs shrink-0 shadow-2xs"
                     style={{ backgroundColor: ch.color }}
                   >
                     {ch.avatarLetter}
@@ -181,7 +207,7 @@ export const Screen5Settings: React.FC<Screen5SettingsProps> = ({
             >
               <div className="flex justify-between items-center">
                 <span className="text-xs font-semibold text-neutral-800">
-                  Edit Child
+                  Edit Child Profile
                 </span>
                 <button
                   type="button"
@@ -220,22 +246,32 @@ export const Screen5Settings: React.FC<Screen5SettingsProps> = ({
                 </div>
               </div>
 
-              <div className="flex items-center justify-between pt-1">
-                <span className="text-xs font-medium text-neutral-500">Color Accent</span>
-                <div className="flex gap-2">
+              {/* 8 Curated Colors Palette */}
+              <div className="pt-1">
+                <div className="flex justify-between items-center mb-1.5">
+                  <span className="text-xs font-medium text-neutral-500">Color Theme</span>
+                  <span className="text-[11px] text-neutral-400">
+                    {ACCENT_COLORS.find((c) => c.hex.toLowerCase() === editColor.toLowerCase())?.name || ''}
+                  </span>
+                </div>
+                <div className="grid grid-cols-8 gap-1.5">
                   {ACCENT_COLORS.map((c) => (
                     <button
                       key={c.hex}
                       type="button"
                       onClick={() => setEditColor(c.hex)}
-                      className={`w-6 h-6 rounded-full border-2 transition-transform ${
+                      className={`h-7 rounded-xl border-2 transition-transform flex items-center justify-center ${
                         editColor.toLowerCase() === c.hex.toLowerCase()
-                          ? 'border-neutral-900 scale-110'
+                          ? 'border-neutral-900 scale-110 shadow-xs'
                           : 'border-transparent hover:scale-105'
                       }`}
                       style={{ backgroundColor: c.hex }}
                       title={c.name}
-                    />
+                    >
+                      {editColor.toLowerCase() === c.hex.toLowerCase() && (
+                        <Check className="w-3 h-3 text-white drop-shadow-xs" />
+                      )}
+                    </button>
                   ))}
                 </div>
               </div>
@@ -244,10 +280,52 @@ export const Screen5Settings: React.FC<Screen5SettingsProps> = ({
                 type="submit"
                 className="w-full py-2.5 bg-neutral-900 hover:bg-black text-white text-xs font-semibold rounded-xl"
               >
-                Save Name
+                Save Name & Color
               </button>
             </form>
           )}
+        </section>
+
+        {/* Label Layout Section */}
+        <section>
+          <div className="mb-2 px-1">
+            <h2 className="text-xs font-medium text-neutral-400 uppercase tracking-wider">
+              Label Layout (Sticker Arrangement)
+            </h2>
+          </div>
+
+          <div className="bg-white rounded-2xl border border-neutral-200/80 shadow-2xs divide-y divide-neutral-100 overflow-hidden">
+            {LABEL_LAYOUTS.map((lay) => {
+              const isSelected = labelLayout === lay.id;
+
+              return (
+                <button
+                  key={lay.id}
+                  type="button"
+                  onClick={() => onChangeLabelLayout(lay.id)}
+                  className="w-full px-4 py-3 flex items-center justify-between text-left hover:bg-neutral-50/70 transition-colors"
+                >
+                  <div className="min-w-0 pr-2">
+                    <div className="text-sm font-semibold text-neutral-900 flex items-center gap-2">
+                      <span>{lay.title}</span>
+                      {lay.id === 'split-header' && (
+                        <span className="text-[10px] font-bold bg-neutral-100 text-neutral-600 px-1.5 py-0.2 rounded">
+                          Recommended
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-xs text-neutral-400 mt-0.5">{lay.subtitle}</div>
+                  </div>
+
+                  {isSelected && (
+                    <div className="w-5 h-5 rounded-full bg-neutral-900 text-white flex items-center justify-center shrink-0">
+                      <Check className="w-3 h-3" />
+                    </div>
+                  )}
+                </button>
+              );
+            })}
+          </div>
         </section>
 
         {/* Date Format Section */}
@@ -292,7 +370,7 @@ export const Screen5Settings: React.FC<Screen5SettingsProps> = ({
           </div>
         </section>
 
-        {/* Printer Selection Section (iOS-style checkmark rows — no offset dropdown arrow) */}
+        {/* Printer Selection Section */}
         <section>
           <div className="mb-2 px-1">
             <h2 className="text-xs font-medium text-neutral-400 uppercase tracking-wider">
@@ -315,7 +393,7 @@ export const Screen5Settings: React.FC<Screen5SettingsProps> = ({
                     <div className="text-xs text-neutral-400">{p.desc} · 2.1" × 1.1"</div>
                   </div>
                   {isSelected && (
-                    <div className="w-5 h-5 rounded-full bg-neutral-900 text-white flex items-center justify-center">
+                    <div className="w-5 h-5 rounded-full bg-neutral-900 text-white flex items-center justify-center shrink-0">
                       <Check className="w-3 h-3" />
                     </div>
                   )}

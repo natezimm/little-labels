@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { LabelItem } from '../types';
+import { LabelItem, LabelLayout } from '../types';
 import { ThermalLabel } from './ThermalLabel';
 import { ArrowLeft, Printer, CheckCircle, AlertCircle } from 'lucide-react';
 
@@ -12,6 +12,7 @@ interface Screen4PrintPreviewProps {
   activeChildAvatar: string;
   formattedDate: string;
   printerModel: string;
+  labelLayout: LabelLayout;
 }
 
 export const Screen4PrintPreview: React.FC<Screen4PrintPreviewProps> = ({
@@ -23,6 +24,7 @@ export const Screen4PrintPreview: React.FC<Screen4PrintPreviewProps> = ({
   activeChildAvatar,
   formattedDate,
   printerModel,
+  labelLayout,
 }) => {
   const [isPrinting, setIsPrinting] = useState(false);
   const [printSuccess, setPrintSuccess] = useState(false);
@@ -100,6 +102,7 @@ export const Screen4PrintPreview: React.FC<Screen4PrintPreviewProps> = ({
               label={item}
               childFullName={activeChildFullName}
               formattedDate={formattedDate}
+              layout={labelLayout}
             />
           ))}
 
@@ -112,16 +115,17 @@ export const Screen4PrintPreview: React.FC<Screen4PrintPreviewProps> = ({
         </div>
       </div>
 
-      {/* Bottom Sticky Action Bar */}
+      {/* Bottom Sticky Action Bar: Print Button with Child's Hue */}
       <div className="bg-white/90 backdrop-blur-md px-5 py-4 border-t border-neutral-200/70 sticky bottom-0 z-20">
         <button
           onClick={handlePrintAll}
           disabled={isPrinting || labels.length === 0}
-          className={`w-full py-3.5 rounded-full text-white text-sm font-semibold flex items-center justify-center gap-2 shadow-sm transition-all ${
+          className={`w-full py-3.5 rounded-full text-white text-sm font-semibold flex items-center justify-center gap-2 shadow-sm transition-all active:scale-98 ${
             isPrinting || labels.length === 0
-              ? 'bg-neutral-300 cursor-not-allowed'
-              : 'bg-neutral-900 hover:bg-black active:scale-98'
+              ? 'opacity-40 cursor-not-allowed bg-neutral-300'
+              : 'hover:opacity-95'
           }`}
+          style={{ backgroundColor: labels.length === 0 ? undefined : activeChildColor }}
         >
           <Printer className="w-4 h-4" />
           <span>

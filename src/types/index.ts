@@ -1,5 +1,7 @@
 export type DateFormat = 'MM/DD/YY' | 'M/D/YY' | 'DD/MM/YY' | 'YYYY-MM-DD';
 
+export type LabelLayout = 'split-header' | 'stacked' | 'centered';
+
 export interface LabelItem {
   id: string;
   childId: string;
